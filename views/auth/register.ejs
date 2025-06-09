@@ -10,13 +10,15 @@
         ></button>
       </div>
       <div class="modal-body">
-        <form id="registerForm">
+        <form id="registerForm" method="post" action="/api/auth/register">
           <div class="mb-3">
             <label class="form-label">Nom complet</label>
             <input
               type="text"
-              id="fullname"
+              id="name"
+              name="name"
               class="form-control"
+              value="Harold"
               placeholder="Votre nom complet"
               required
             />
@@ -27,8 +29,10 @@
             <div class="input-group">
               <input
                 type="email"
-                id="registerEmail"
+                id="email"
+                name="email"
                 class="form-control"
+                value="hrldbrian@gmail.com"
                 placeholder="nom@example.com"
                 required
               />
@@ -44,7 +48,9 @@
               <input
                 type="password"
                 id="password"
+                name="password"
                 class="form-control"
+                value="123456"
                 placeholder="Créez un mot de passe"
                 required
               />
@@ -60,7 +66,9 @@
               <input
                 type="password"
                 id="confirmPassword"
+                name="confirmPassword"
                 class="form-control"
+                value="12345"
                 placeholder="Confirmez le mot de passe"
                 required
               />

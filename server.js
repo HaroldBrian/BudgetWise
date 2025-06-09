@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const path = require("path");
+const session = require("express-session");
 require("dotenv").config();
 
 const { sequelize } = require("./src/models");
@@ -31,11 +32,14 @@ app.use(cors());
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';"
+    "default-src 'self'; " +
+      "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+      "style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+      "font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; " +
+      "connect-src 'self';"
   );
   next();
 });
-
 // Logging middleware
 app.use(
   morgan("combined", {
@@ -44,9 +48,23 @@ app.use(
 );
 
 // Body middleware
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "default_secret",
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+
+app.use((req, res, next) => {
+  res.locals.message = req.session.message;
+  delete req.session.message;
+  next();
+});
 
 // View engine
 app.set("view engine", "ejs");
@@ -104,19 +122,6 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
-// Handle graceful shutdown
-process.on("SIGTERM", async () => {
-  logger.info("SIGTERM signal received: closing HTTP server");
-  await sequelize.close();
-  process.exit(0);
-});
-
-process.on("SIGINT", async () => {
-  logger.info("SIGINT signal received: closing HTTP server");
-  await sequelize.close();
-  process.exit(0);
-});
 
 if (require.main === module) {
   startServer();

@@ -1,0 +1,66 @@
+<div class="modal fade" id="loginModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Espace de connexion</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm" class="">
+          <div class="mb-3">
+            <label class="form-label">Adresse mail</label>
+            <div class="input-group">
+              <input
+                type="email"
+                id="email"
+                class="form-control"
+                placeholder="nom@example.com"
+              />
+              <span class="input-group-text">
+                <i class="fas fa-envelope"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label">Mot de passe</label>
+            <div class="input-group">
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                placeholder="Entrez votre mot de passe"
+              />
+              <span class="input-group-text password-toggle">
+                <i class="fas fa-eye"></i>
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            id="loginSubmit"
+            class="btn btn-login text-white"
+          >
+            Se connecter
+          </button>
+
+          <div class="register-link">
+            <p class="text-center">Vous n'avez pas de compte ?</p>
+            <a
+              href="#"
+              class="fw-bold"
+              data-bs-toggle="modal"
+              data-bs-target="#registerModal"
+              >Créez-en un gratuitement !</a
+            >
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

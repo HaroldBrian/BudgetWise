@@ -1,0 +1,102 @@
+:root {
+  --primary-color: #493ffc;
+  --secondary-color: #243a50;
+  --accent-color: #fc6060;
+  --gradient: linear-gradient(135deg, var(--primary-color), #8619e6);
+}
+
+.modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.modal-header {
+  background: var(--gradient);
+  padding: 20px;
+  border: none;
+  color: white;
+}
+
+.modal-title {
+  font-weight: 600;
+}
+
+.modal-body {
+  padding: 30px;
+}
+
+.btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.form-control {
+  padding: 12px 15px;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  transition: all 0.3s ease;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: none;
+}
+
+.input-group-text {
+  border: none;
+  background: transparent;
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 4;
+  color: #666;
+}
+
+.input-group {
+  position: relative;
+}
+
+.btn-login {
+  padding: 12px 20px;
+  background: var(--gradient);
+  border: none;
+  border-radius: 10px;
+  font-weight: 500;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px var(--secondary-color);
+}
+
+.btn-inactive {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid #eee;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.btn-inactive:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+.password-toggle {
+  cursor: pointer;
+}
+
+.register-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+.register-link a {
+  color: var(--primary-color);
+}

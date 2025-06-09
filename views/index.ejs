@@ -1,0 +1,170 @@
+<%- include('partials/header') %> <%- include('partials/navbar') %> <%-
+include('auth/login') %> <%- include('auth/register') %>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 hero-text">
+        <h1>
+          Vos finances avec
+          <span class="text-decoration-underline">BudgetWise</span>
+        </h1>
+        <p>
+          Suivez vos revenus et vos dépenses, définissez un budget, et prenez le
+          contrôle total de votre avenir financier. Rejoignez des milliers
+          d’utilisateurs satisfaits dès aujourd’hui.
+        </p>
+
+        <div class="d-flex">
+          <button
+            class="btn btn-outline-light btn-lg w-50 scale"
+            data-bs-toggle="modal"
+            data-bs-target="#loginModal"
+          >
+            Se connecter
+          </button>
+          <button
+            class="btn btn-light btn-lg w-50 scale"
+            data-bs-toggle="modal"
+            data-bs-target="#registerModal"
+          >
+            S'inscrire
+          </button>
+        </div>
+      </div>
+      <div class="col-lg-6 text-center pt-4">
+        <img
+          src="/img/phoneMockup.png"
+          alt="Phone Mockup"
+          class="phone-mockup img-fluid"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">30+</div>
+          <div>Utilisateurs</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">4.8</div>
+          <div>Notes</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">5+</div>
+          <div>Fonctionnalités</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-number">24/7</div>
+          <div>Assistance</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="py-5">
+  <div class="container">
+    <h2 class="text-center mb-5 fw-bold text-uppercase">
+      Fonctionnalités principales
+    </h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <i class="fas fa-wallet feature-icon fa-3x mb-3"></i>
+          <h3>Gestion des Transactions</h3>
+          <p>
+            Ajoutez, modifiez ou supprimez vos revenus et dépenses facilement,
+            avec catégories et tags personnalisés.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <i class="fas fa-chart-line feature-icon fa-3x mb-3"></i>
+          <h3>Suivi du Solde</h3>
+          <p>
+            Consultez votre solde en temps réel et gérez votre budget mensuel
+            avec des alertes intelligentes.
+          </p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="feature-card text-center">
+          <i class="fas fa-chart-pie feature-icon fa-3x mb-3"></i>
+          <h3>Statistiques Visuelles</h3>
+          <p>
+            Analysez vos dépenses grâce à des graphiques par catégorie, par mois
+            ou par période personnalisée.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Screenshots Section -->
+<section id="screenshots" class="py-5 bg-light">
+  <div class="container">
+    <h2 class="text-center mb-5 fw-bold text-uppercase">
+      Découvrez BudgetWise
+    </h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <img
+          src="/img/screenshot1.png"
+          alt="Screenshot 1"
+          class="img-fluid screenshot"
+        />
+      </div>
+      <div class="col-md-4">
+        <img
+          src="/img/screenshot2.png"
+          alt="Screenshot 2"
+          class="img-fluid screenshot"
+        />
+      </div>
+      <div class="col-md-4">
+        <img
+          src="/img/screenshot3.png"
+          alt="Screenshot 3"
+          class="img-fluid screenshot"
+        />
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="get-started" class="start-section text-center">
+  <div class="container">
+    <h2 class="text-white fw-bold mb-4 text-uppercase">
+      Commencez dès maintenant
+    </h2>
+    <p class="text-white mb-5">
+      Profitez de BudgetWise votre application de gestion de vos finane pour du
+      bonheur dans votre gestion !
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+      <button class="btn btn-outline-light btn-lg w-50 scale">
+        Se connecter
+      </button>
+      <button class="btn btn-light btn-lg w-50 scale">S'inscrire</button>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

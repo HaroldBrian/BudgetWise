@@ -10,14 +10,17 @@
         ></button>
       </div>
       <div class="modal-body">
-        <form id="loginForm" class="">
+        <form id="loginForm" method="post" action="/api/auth/login">
           <div class="mb-3">
             <label class="form-label">Adresse mail</label>
             <div class="input-group">
               <input
                 type="email"
                 id="email"
+                name="email"
                 class="form-control"
+                required
+                value="hrldbrian@gmail.com"
                 placeholder="nom@example.com"
               />
               <span class="input-group-text">
@@ -32,7 +35,10 @@
               <input
                 type="password"
                 id="password"
+                name="password"
                 class="form-control"
+                required
+                value="123456"
                 placeholder="Entrez votre mot de passe"
               />
               <span class="input-group-text password-toggle">
@@ -44,6 +50,7 @@
           <button
             type="submit"
             id="loginSubmit"
+            name="loginSubmit"
             class="btn btn-login text-white"
           >
             Se connecter

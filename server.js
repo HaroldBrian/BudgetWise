@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const path = require("path");
 require("dotenv").config();
 
 const { sequelize } = require("./src/models");
@@ -10,6 +11,7 @@ const logger = require("./src/utils/logger");
 const errorHandler = require("./src/middleware/errorHandler");
 
 // Import routes
+const indexRoutes = require("./src/routes/index");
 const authRoutes = require("./src/routes/auth");
 const userRoutes = require("./src/routes/users");
 const budgetRoutes = require("./src/routes/budgets");
@@ -24,6 +26,16 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 app.use(cors());
 
+// Content Security Policy
+// Note: pour autoriser l'utilisation des ressources de jsdelivr.net et CDN
+app.use((req, res, next) => {
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net; connect-src 'self';"
+  );
+  next();
+});
+
 // Logging middleware
 app.use(
   morgan("combined", {
@@ -31,12 +43,15 @@ app.use(
   })
 );
 
-// Body parsing middleware
+// Body middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "public")));
 
-// Test
-// check endpoint
+// View engine
+app.set("view engine", "ejs");
+
+// Test check endpoint
 app.get("/test", (req, res) => {
   res.status(200).json({
     status: "OK",
@@ -44,6 +59,9 @@ app.get("/test", (req, res) => {
     uptime: process.uptime(),
   });
 });
+
+// Routes
+app.use("/", indexRoutes);
 
 // API routes
 app.use("/api/auth", authRoutes);

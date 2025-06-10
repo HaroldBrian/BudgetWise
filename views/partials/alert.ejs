@@ -1,0 +1,46 @@
+<!-- Message -->
+<% if (message) { %>
+<div class="container mt-4 pt-5" style="position: absolute">
+  <div
+    class="alert alert-<%= message.type %> alert-dismissible fade show"
+    role="alert"
+  >
+    <%= message.message %>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+</div>
+<% } %>
+<!-- Error -->
+<% if (error) { %>
+<div class="container mt-4 pt-5" style="position: absolute">
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    <%= error %>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+</div>
+
+<% } %>
+<!-- User -->
+<% if (message) { %>
+<div class="container mt-4 pt-5" style="position: absolute">
+  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+    message
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="alert"
+      aria-label="Close"
+    ></button>
+  </div>
+</div>
+<% } %>

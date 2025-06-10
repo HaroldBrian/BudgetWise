@@ -1,0 +1,229 @@
+<%- include('../layouts/main', { title: 'Mes Alertes' }) %>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Mes Alertes</h1>
+        <button
+          type="button"
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#createAlertModal"
+        >
+          Créer une alerte
+        </button>
+      </div>
+
+      <% if (alerts && alerts.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Transaction</th>
+              <th>Seuil</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% alerts.forEach(alert => { %>
+            <tr>
+              <td>
+                <%= alert.transaction.description %> (<%=
+                alert.transaction.amount %> €)
+              </td>
+              <td><%= alert.threshold %> €</td>
+              <td>
+                <% if (alert.active) { %>
+                <span class="badge bg-success">Active</span>
+                <% } else { %>
+                <span class="badge bg-secondary">Inactive</span>
+                <% } %>
+              </td>
+              <td>
+                <div class="btn-group">
+                  <a href="/alerts/<%= alert.id %>" class="btn btn-sm btn-info"
+                    >Détails</a
+                  >
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-warning"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editAlertModal<%= alert.id %>"
+                  >
+                    Modifier
+                  </button>
+                  <form
+                    action="/alerts/<%= alert.id %>/delete"
+                    method="POST"
+                    class="d-inline"
+                  >
+                    <button
+                      type="submit"
+                      class="btn btn-sm btn-danger"
+                      onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')"
+                    >
+                      Supprimer
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Modal pour modifier l'alerte -->
+            <div
+              class="modal fade"
+              id="editAlertModal<%= alert.id %>"
+              tabindex="-1"
+            >
+              <div class="modal-dialog">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h5 class="modal-title">Modifier l'alerte</h5>
+                    <button
+                      type="button"
+                      class="btn-close"
+                      data-bs-dismiss="modal"
+                    ></button>
+                  </div>
+                  <form action="/alerts/<%= alert.id %>" method="POST">
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <label for="threshold" class="form-label">Seuil</label>
+                        <input
+                          type="number"
+                          class="form-control"
+                          id="threshold"
+                          name="threshold"
+                          value="<%= alert.threshold %>"
+                          step="0.01"
+                          required
+                        />
+                      </div>
+                      <div class="mb-3">
+                        <div class="form-check">
+                          <input type="checkbox" class="form-check-input"
+                          id="active" name="active" value="true" <%=
+                          alert.active ? 'checked' : '' %>>
+                          <label class="form-check-label" for="active"
+                            >Active</label
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button
+                        type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal"
+                      >
+                        Annuler
+                      </button>
+                      <button type="submit" class="btn btn-primary">
+                        Enregistrer
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="alert alert-info">
+        Vous n'avez pas encore d'alertes. Créez-en une pour commencer à
+        surveiller vos transactions.
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour créer une alerte -->
+<div class="modal fade" id="createAlertModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Créer une alerte</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form action="/alerts" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="transaction_id" class="form-label">Transaction</label>
+            <select
+              class="form-select"
+              id="transaction_id"
+              name="transaction_id"
+              required
+            >
+              <option value="">Sélectionnez une transaction</option>
+              <!-- Les transactions seront chargées dynamiquement via JavaScript -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="threshold" class="form-label">Seuil</label>
+            <input
+              type="number"
+              class="form-control"
+              id="threshold"
+              name="threshold"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="active"
+                name="active"
+                value="true"
+                checked
+              />
+              <label class="form-check-label" for="active">Active</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">Créer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Charger les transactions pour le formulaire de création d'alerte
+  document.addEventListener("DOMContentLoaded", function () {
+    fetch("/api/transactions")
+      .then((response) => response.json())
+      .then((data) => {
+        const select = document.getElementById("transaction_id");
+        data.transactions.forEach((transaction) => {
+          const option = document.createElement("option");
+          option.value = transaction.id;
+          option.textContent = `${transaction.description} (${transaction.amount} €)`;
+          select.appendChild(option);
+        });
+      })
+      .catch((error) =>
+        console.error("Erreur lors du chargement des transactions:", error)
+      );
+  });
+</script>

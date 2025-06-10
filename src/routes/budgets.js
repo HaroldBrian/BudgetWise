@@ -1,179 +1,184 @@
-const express = require('express');
-const { body, param, query, validationResult } = require('express-validator');
-const { Budget } = require('../models');
-const { authenticateToken } = require('../middleware/auth');
-const logger = require('../utils/logger');
+const express = require("express");
+const { body, param, validationResult } = require("express-validator");
+const { Budget } = require("../models");
+const { isAuthenticated } = require("../middleware/authMiddleware");
+const logger = require("../utils/logger");
 
 const router = express.Router();
 
 // Get all budgets for current user
-router.get('/', authenticateToken, [
-  query('year')
-    .optional()
-    .isInt({ min: 2000, max: 3000 })
-    .withMessage('L\'année doit être valide')
-], async (req, res, next) => {
+router.get("/", isAuthenticated, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const { year } = req.query;
-    const whereClause = { user_id: req.user.id };
-
-    if (year) {
-      whereClause.month = {
-        [require('sequelize').Op.like]: `${year}-%`
-      };
-    }
-
     const budgets = await Budget.findAll({
-      where: whereClause,
-      order: [['month', 'DESC']]
+      where: { userId: req.session.user.id },
     });
-
-    res.json({
-      success: true,
-      data: {
-        budgets,
-        count: budgets.length
-      }
+    res.render("budgets/index", {
+      title: "Mes Budgets",
+      budgets,
+      user: req.session.user,
     });
   } catch (error) {
-    next(error);
+    req.session.message = {
+      type: "danger",
+      message: "Erreur lors de la récupération des budgets",
+    };
+    res.redirect("/dashboard");
   }
 });
 
 // Get budget by month
-router.get('/:month', authenticateToken, [
-  param('month')
-    .matches(/^\d{4}-(0[1-9]|1[0-2])$/)
-    .withMessage('Le format du mois doit être YYYY-MM')
-], async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const { month } = req.params;
-
-    const budget = await Budget.findOne({
-      where: {
-        user_id: req.user.id,
-        month
+router.get(
+  "/:month",
+  isAuthenticated,
+  [
+    param("month")
+      .matches(/^\d{4}-(0[1-9]|1[0-2])$/)
+      .withMessage("Le format du mois doit être YYYY-MM"),
+  ],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Erreurs de validation",
+          errors: errors.array(),
+        });
       }
-    });
 
-    if (!budget) {
-      return res.status(404).json({
-        success: false,
-        message: 'Budget non trouvé pour ce mois'
+      const { month } = req.params;
+
+      const budget = await Budget.findOne({
+        where: {
+          userId: req.session.user.id,
+          month,
+        },
       });
-    }
 
-    res.json({
-      success: true,
-      data: {
-        budget
+      if (!budget) {
+        return res.status(404).json({
+          success: false,
+          message: "Budget non trouvé pour ce mois",
+        });
       }
-    });
-  } catch (error) {
-    next(error);
+
+      res.json({
+        success: true,
+        data: {
+          budget,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 // Create or update budget
-router.post('/', authenticateToken, [
-  body('month')
-    .matches(/^\d{4}-(0[1-9]|1[0-2])$/)
-    .withMessage('Le format du mois doit être YYYY-MM'),
-  body('amount')
-    .isFloat({ min: 0 })
-    .withMessage('Le montant doit être un nombre positif')
-], async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const { month, amount } = req.body;
-
-    const [budget, created] = await Budget.upsert({
-      user_id: req.user.id,
-      month,
-      amount
-    });
-
-    logger.info(`Budget ${created ? 'created' : 'updated'} for user ${req.user.email}: ${month} - ${amount}`);
-
-    res.status(created ? 201 : 200).json({
-      success: true,
-      message: `Budget ${created ? 'créé' : 'mis à jour'} avec succès`,
-      data: {
-        budget
+router.post(
+  "/",
+  isAuthenticated,
+  [
+    body("month")
+      .matches(/^\d{4}-(0[1-9]|1[0-2])$/)
+      .withMessage("Le format du mois doit être YYYY-MM"),
+    body("amount")
+      .isFloat({ min: 0 })
+      .withMessage("Le montant doit être un nombre positif"),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Erreurs de validation",
+          errors: errors.array(),
+        });
       }
-    });
-  } catch (error) {
-    next(error);
+
+      const { month, amount } = req.body;
+
+      const [created] = await Budget.upsert({
+        userId: req.session.user.id,
+        month,
+        amount,
+      });
+
+      logger.info(
+        `Budget ${created ? "created" : "updated"} for user ${
+          req.session.user.email
+        }: ${month} - ${amount}`
+      );
+
+      req.session.message = {
+        type: "success",
+        message: `Budget ${created ? "créé" : "mis à jour"} avec succès`,
+      };
+      res.redirect("/budgets");
+    } catch (error) {
+      req.session.message = {
+        type: "danger",
+        message: "Erreur lors de la création ou de la mise à jour du budget",
+      };
+      res.redirect("/budgets");
+    }
   }
-});
+);
 
 // Delete budget
-router.delete('/:month', authenticateToken, [
-  param('month')
-    .matches(/^\d{4}-(0[1-9]|1[0-2])$/)
-    .withMessage('Le format du mois doit être YYYY-MM')
-], async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const { month } = req.params;
-
-    const deleted = await Budget.destroy({
-      where: {
-        user_id: req.user.id,
-        month
+router.delete(
+  "/:month",
+  isAuthenticated,
+  [
+    param("month")
+      .matches(/^\d{4}-(0[1-9]|1[0-2])$/)
+      .withMessage("Le format du mois doit être YYYY-MM"),
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Erreurs de validation",
+          errors: errors.array(),
+        });
       }
-    });
 
-    if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        message: 'Budget non trouvé pour ce mois'
+      const { month } = req.params;
+
+      const deleted = await Budget.destroy({
+        where: {
+          userId: req.session.user.id,
+          month,
+        },
       });
+
+      if (!deleted) {
+        return res.status(404).json({
+          success: false,
+          message: "Budget non trouvé pour ce mois",
+        });
+      }
+
+      logger.info(
+        `Budget deleted for user ${req.session.user.email}: ${month}`
+      );
+
+      req.session.message = {
+        type: "success",
+        message: "Budget supprimé avec succès",
+      };
+      res.redirect("/budgets");
+    } catch (error) {
+      req.session.message = {
+        type: "danger",
+        message: "Erreur lors de la suppression du budget",
+      };
+      res.redirect("/budgets");
     }
-
-    logger.info(`Budget deleted for user ${req.user.email}: ${month}`);
-
-    res.json({
-      success: true,
-      message: 'Budget supprimé avec succès'
-    });
-  } catch (error) {
-    next(error);
   }
-});
+);
 
 module.exports = router;

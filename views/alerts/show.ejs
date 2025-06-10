@@ -1,0 +1,141 @@
+<%- include('../layouts/main', { title: 'Détails de l\'alerte' }) %>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Détails de l'alerte</h2>
+        </div>
+        <div class="card-body">
+          <div class="mb-4">
+            <h3>Transaction</h3>
+            <p>
+              <strong>Description:</strong> <%= alert.transaction.description %>
+            </p>
+            <p><strong>Montant:</strong> <%= alert.transaction.amount %> €</p>
+            <p>
+              <strong>Date:</strong> <%= new
+              Date(alert.transaction.date).toLocaleDateString() %>
+            </p>
+          </div>
+
+          <div class="mb-4">
+            <h3>Configuration de l'alerte</h3>
+            <p><strong>Seuil:</strong> <%= alert.threshold %> €</p>
+            <p>
+              <strong>Statut:</strong>
+              <% if (alert.active) { %>
+              <span class="badge bg-success">Active</span>
+              <% } else { %>
+              <span class="badge bg-secondary">Inactive</span>
+              <% } %>
+            </p>
+          </div>
+
+          <div class="mb-4">
+            <h3>Historique des déclenchements</h3>
+            <% if (alert.triggered && alert.triggered.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Montant</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% alert.triggered.forEach(trigger => { %>
+                  <tr>
+                    <td><%= new Date(trigger.date).toLocaleString() %></td>
+                    <td><%= trigger.amount %> €</td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+            <% } else { %>
+            <p class="text-muted">Aucun déclenchement enregistré</p>
+            <% } %>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="/alerts" class="btn btn-secondary">Retour à la liste</a>
+            <div>
+              <button
+                type="button"
+                class="btn btn-warning"
+                data-bs-toggle="modal"
+                data-bs-target="#editAlertModal"
+              >
+                Modifier
+              </button>
+              <form
+                action="/alerts/<%= alert.id %>/delete"
+                method="POST"
+                class="d-inline"
+              >
+                <button
+                  type="submit"
+                  class="btn btn-danger"
+                  onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')"
+                >
+                  Supprimer
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal pour modifier l'alerte -->
+<div class="modal fade" id="editAlertModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Modifier l'alerte</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form action="/alerts/<%= alert.id %>" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="threshold" class="form-label">Seuil</label>
+            <input
+              type="number"
+              class="form-control"
+              id="threshold"
+              name="threshold"
+              value="<%= alert.threshold %>"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input type="checkbox" class="form-check-input" id="active"
+              name="active" value="true" <%= alert.active ? 'checked' : '' %>>
+              <label class="form-check-label" for="active">Active</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

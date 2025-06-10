@@ -4,7 +4,7 @@ BudgetWise est une application pour la gestion de budget personnel, développée
 
 ## Fonctionnalités
 
-- **Authentification JWT** - Inscription et connexion sécurisées
+- **Authentification par Session** - Inscription et connexion sécurisées avec gestion de session
 - **Gestion des utilisateurs** - Profils utilisateur complets
 - **Budgets mensuels** - Création et suivi des budgets par mois
 - **Transactions** - Gestion des revenus et dépenses avec catégorisation
@@ -62,9 +62,8 @@ DB_NAME=budgetwise_db
 DB_USER=root
 DB_PASSWORD=your_password
 
-# JWT Secret
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=24h
+# Session Configuration
+SESSION_SECRET=your_super_secret_session_key_here
 ```
 
 4. **Créer la base de données**
@@ -198,7 +197,7 @@ DB_PORT=3306
 DB_NAME=budgetwise_db
 DB_USER=your_db_user
 DB_PASSWORD=your_db_password
-JWT_SECRET=your_production_jwt_secret
+SESSION_SECRET=your_production_session_secret
 ```
 
 ---

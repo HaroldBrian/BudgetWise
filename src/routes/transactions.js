@@ -1,305 +1,166 @@
-const express = require('express');
-const { body, param, query, validationResult } = require('express-validator');
-const { Transaction } = require('../models');
-const { authenticateToken } = require('../middleware/auth');
-const logger = require('../utils/logger');
+const express = require("express");
+const { body, param, query, validationResult } = require("express-validator");
+const { Transaction } = require("../models");
+const { isAuthenticated } = require("../middleware/authMiddleware");
+const logger = require("../utils/logger");
 
 const router = express.Router();
 
 // Get all transactions for current user
-router.get('/', authenticateToken, [
-  query('type')
-    .optional()
-    .isIn(['income', 'expense'])
-    .withMessage('Le type doit être "income" ou "expense"'),
-  query('category')
-    .optional()
-    .isLength({ min: 1, max: 100 })
-    .withMessage('La catégorie doit contenir entre 1 et 100 caractères'),
-  query('startDate')
-    .optional()
-    .isISO8601()
-    .withMessage('La date de début doit être au format ISO 8601'),
-  query('endDate')
-    .optional()
-    .isISO8601()
-    .withMessage('La date de fin doit être au format ISO 8601'),
-  query('page')
-    .optional()
-    .isInt({ min: 1 })
-    .withMessage('La page doit être un entier positif'),
-  query('limit')
-    .optional()
-    .isInt({ min: 1, max: 100 })
-    .withMessage('La limite doit être entre 1 et 100')
-], async (req, res, next) => {
+router.get("/", isAuthenticated, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const { type, category, startDate, endDate, page = 1, limit = 20 } = req.query;
-    const whereClause = { user_id: req.user.id };
-
-    if (type) whereClause.type = type;
-    if (category) whereClause.category = category;
-
-    if (startDate || endDate) {
-      whereClause.date = {};
-      if (startDate) whereClause.date[require('sequelize').Op.gte] = startDate;
-      if (endDate) whereClause.date[require('sequelize').Op.lte] = endDate;
-    }
-
-    const offset = (page - 1) * limit;
-
-    const { count, rows: transactions } = await Transaction.findAndCountAll({
-      where: whereClause,
-      order: [['date', 'DESC'], ['id', 'DESC']],
-      limit: parseInt(limit),
-      offset
+    const transactions = await Transaction.findAll({
+      where: { userId: req.session.user.id },
+      order: [["date", "DESC"]],
     });
-
-    res.json({
-      success: true,
-      data: {
-        transactions,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(count / limit),
-          totalItems: count,
-          itemsPerPage: parseInt(limit)
-        }
-      }
+    res.render("transactions/index", {
+      title: "Mes Transactions",
+      transactions,
+      user: req.session.user,
     });
   } catch (error) {
-    next(error);
+    req.session.message = {
+      type: "danger",
+      message: "Erreur lors de la récupération des transactions",
+    };
+    res.redirect("/dashboard");
   }
 });
 
 // Get transaction by ID
-router.get('/:id', authenticateToken, [
-  param('id')
-    .isInt()
-    .withMessage('L\'ID doit être un entier')
-], async (req, res, next) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const { id } = req.params;
-
-    const transaction = await Transaction.findOne({
-      where: {
-        id,
-        user_id: req.user.id
+router.get(
+  "/:id",
+  isAuthenticated,
+  [param("id").isInt().withMessage("L'ID doit être un entier")],
+  async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: "Erreurs de validation",
+          errors: errors.array(),
+        });
       }
-    });
 
-    if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: 'Transaction non trouvée'
+      const { id } = req.params;
+
+      const transaction = await Transaction.findOne({
+        where: {
+          id,
+          userId: req.session.user.id,
+        },
       });
-    }
 
-    res.json({
-      success: true,
-      data: {
-        transaction
+      if (!transaction) {
+        return res.status(404).json({
+          success: false,
+          message: "Transaction non trouvée",
+        });
       }
-    });
-  } catch (error) {
-    next(error);
+
+      res.json({
+        success: true,
+        data: {
+          transaction,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 // Create transaction
-router.post('/', authenticateToken, [
-  body('type')
-    .isIn(['income', 'expense'])
-    .withMessage('Le type doit être "income" ou "expense"'),
-  body('amount')
-    .isFloat({ min: 0 })
-    .withMessage('Le montant doit être un nombre positif'),
-  body('description')
-    .optional()
-    .isLength({ max: 255 })
-    .withMessage('La description ne peut pas dépasser 255 caractères'),
-  body('category')
-    .optional()
-    .isLength({ max: 100 })
-    .withMessage('La catégorie ne peut pas dépasser 100 caractères'),
-  body('date')
-    .isISO8601()
-    .withMessage('La date doit être au format ISO 8601'),
-  body('tags')
-    .optional()
-    .isArray()
-    .withMessage('Les tags doivent être un tableau'),
-  body('is_recurring')
-    .optional()
-    .isBoolean()
-    .withMessage('is_recurring doit être un booléen')
-], async (req, res, next) => {
+router.post("/", isAuthenticated, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
-    const transactionData = {
-      ...req.body,
-      user_id: req.user.id
-    };
-
-    const transaction = await Transaction.create(transactionData);
-
-    logger.info(`Transaction created for user ${req.user.email}: ${transaction.type} - ${transaction.amount}`);
-
-    res.status(201).json({
-      success: true,
-      message: 'Transaction créée avec succès',
-      data: {
-        transaction
-      }
+    const { amount, description, category, type, date } = req.body;
+    const transaction = await Transaction.create({
+      amount,
+      description,
+      category,
+      type,
+      date,
+      userId: req.session.user.id,
     });
+
+    req.session.message = {
+      type: "success",
+      message: "Transaction créée avec succès",
+    };
+    res.redirect("/transactions");
   } catch (error) {
-    next(error);
+    req.session.message = {
+      type: "danger",
+      message: "Erreur lors de la création de la transaction",
+    };
+    res.redirect("/transactions");
   }
 });
 
 // Update transaction
-router.put('/:id', authenticateToken, [
-  param('id')
-    .isInt()
-    .withMessage('L\'ID doit être un entier'),
-  body('type')
-    .optional()
-    .isIn(['income', 'expense'])
-    .withMessage('Le type doit être "income" ou "expense"'),
-  body('amount')
-    .optional()
-    .isFloat({ min: 0 })
-    .withMessage('Le montant doit être un nombre positif'),
-  body('description')
-    .optional()
-    .isLength({ max: 255 })
-    .withMessage('La description ne peut pas dépasser 255 caractères'),
-  body('category')
-    .optional()
-    .isLength({ max: 100 })
-    .withMessage('La catégorie ne peut pas dépasser 100 caractères'),
-  body('date')
-    .optional()
-    .isISO8601()
-    .withMessage('La date doit être au format ISO 8601'),
-  body('tags')
-    .optional()
-    .isArray()
-    .withMessage('Les tags doivent être un tableau'),
-  body('is_recurring')
-    .optional()
-    .isBoolean()
-    .withMessage('is_recurring doit être un booléen')
-], async (req, res, next) => {
+router.put("/:id", isAuthenticated, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
     const { id } = req.params;
+    const { amount, description, category, type, date } = req.body;
 
     const transaction = await Transaction.findOne({
-      where: {
-        id,
-        user_id: req.user.id
-      }
+      where: { id, userId: req.session.user.id },
     });
 
     if (!transaction) {
-      return res.status(404).json({
-        success: false,
-        message: 'Transaction non trouvée'
-      });
+      req.session.message = {
+        type: "danger",
+        message: "Transaction non trouvée",
+      };
+      return res.redirect("/transactions");
     }
 
-    await transaction.update(req.body);
-    await transaction.reload();
+    await transaction.update({ amount, description, category, type, date });
 
-    logger.info(`Transaction updated for user ${req.user.email}: ID ${id}`);
-
-    res.json({
-      success: true,
-      message: 'Transaction mise à jour avec succès',
-      data: {
-        transaction
-      }
-    });
+    req.session.message = {
+      type: "success",
+      message: "Transaction mise à jour avec succès",
+    };
+    res.redirect("/transactions");
   } catch (error) {
-    next(error);
+    req.session.message = {
+      type: "danger",
+      message: "Erreur lors de la mise à jour de la transaction",
+    };
+    res.redirect("/transactions");
   }
 });
 
 // Delete transaction
-router.delete('/:id', authenticateToken, [
-  param('id')
-    .isInt()
-    .withMessage('L\'ID doit être un entier')
-], async (req, res, next) => {
+router.delete("/:id", isAuthenticated, async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Erreurs de validation',
-        errors: errors.array()
-      });
-    }
-
     const { id } = req.params;
-
-    const deleted = await Transaction.destroy({
-      where: {
-        id,
-        user_id: req.user.id
-      }
+    const transaction = await Transaction.findOne({
+      where: { id, userId: req.session.user.id },
     });
 
-    if (!deleted) {
-      return res.status(404).json({
-        success: false,
-        message: 'Transaction non trouvée'
-      });
+    if (!transaction) {
+      req.session.message = {
+        type: "danger",
+        message: "Transaction non trouvée",
+      };
+      return res.redirect("/transactions");
     }
 
-    logger.info(`Transaction deleted for user ${req.user.email}: ID ${id}`);
+    await transaction.destroy();
 
-    res.json({
-      success: true,
-      message: 'Transaction supprimée avec succès'
-    });
+    req.session.message = {
+      type: "success",
+      message: "Transaction supprimée avec succès",
+    };
+    res.redirect("/transactions");
   } catch (error) {
-    next(error);
+    req.session.message = {
+      type: "danger",
+      message: "Erreur lors de la suppression de la transaction",
+    };
+    res.redirect("/transactions");
   }
 });
 

@@ -97,17 +97,13 @@ app.use("*", (req, res) => {
   });
 });
 
-// Global error handler
 app.use(errorHandler);
 
-// Start server
 const startServer = async () => {
   try {
-    // Test database connection
     await sequelize.authenticate();
     logger.info("Database connection established successfully");
 
-    // Sync database (only in development)
     if (process.env.NODE_ENV === "development") {
       await sequelize.sync({ alter: true });
       logger.info("Database synchronized");

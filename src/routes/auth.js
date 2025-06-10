@@ -87,7 +87,6 @@ router.post(
       res.redirect("/dashboard");
     } catch (error) {
       next(error);
-      res.redirect("/");
     }
   }
 );

@@ -1,0 +1,232 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8 offset-md-2">
+      <div class="card">
+        <div class="card-header">
+          <h2><i class="fas fa-user-cog me-2"></i>Mon Profil</h2>
+        </div>
+        <div class="card-body">
+          <!-- Informations actuelles -->
+          <div class="row mb-4">
+            <div class="col-md-6">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <h5 class="card-title">Informations actuelles</h5>
+                  <p><strong>Nom:</strong> <%= user.name %></p>
+                  <p><strong>Email:</strong> <%= user.email %></p>
+                  <p><strong>Membre depuis:</strong> <%= new Date(user.created_at).toLocaleDateString('fr-FR') %></p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card bg-primary text-white">
+                <div class="card-body">
+                  <h5 class="card-title">Statistiques</h5>
+                  <p><i class="fas fa-calendar me-2"></i>Compte créé il y a <%= Math.floor((new Date() - new Date(user.created_at)) / (1000 * 60 * 60 * 24)) %> jours</p>
+                  <p><i class="fas fa-shield-alt me-2"></i>Compte sécurisé</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulaire de mise à jour du profil -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Modifier mes informations</h5>
+            </div>
+            <div class="card-body">
+              <form action="/users/profile" method="POST">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="name" class="form-label">Nom complet</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        name="name"
+                        value="<%= user.name %>"
+                        minlength="2"
+                        maxlength="100"
+                      />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="email" class="form-label">Adresse email</label>
+                      <input
+                        type="email"
+                        class="form-control"
+                        id="email"
+                        name="email"
+                        value="<%= user.email %>"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fas fa-save me-2"></i>Mettre à jour le profil
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Formulaire de changement de mot de passe -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h5 class="mb-0"><i class="fas fa-key me-2"></i>Changer le mot de passe</h5>
+            </div>
+            <div class="card-body">
+              <form action="/users/password" method="POST">
+                <div class="mb-3">
+                  <label for="currentPassword" class="form-label">Mot de passe actuel</label>
+                  <div class="input-group">
+                    <input
+                      type="password"
+                      class="form-control"
+                      id="currentPassword"
+                      name="currentPassword"
+                      required
+                    />
+                    <span class="input-group-text password-toggle">
+                      <i class="fas fa-eye"></i>
+                    </span>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="newPassword" class="form-label">Nouveau mot de passe</label>
+                      <div class="input-group">
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="newPassword"
+                          name="newPassword"
+                          minlength="6"
+                          required
+                        />
+                        <span class="input-group-text password-toggle">
+                          <i class="fas fa-eye"></i>
+                        </span>
+                      </div>
+                      <div class="form-text">Au moins 6 caractères</div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                      <label for="confirmPassword" class="form-label">Confirmer le mot de passe</label>
+                      <div class="input-group">
+                        <input
+                          type="password"
+                          class="form-control"
+                          id="confirmPassword"
+                          name="confirmPassword"
+                          minlength="6"
+                          required
+                        />
+                        <span class="input-group-text password-toggle">
+                          <i class="fas fa-eye"></i>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                  <i class="fas fa-key me-2"></i>Changer le mot de passe
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Section de suppression de compte -->
+          <div class="card border-danger">
+            <div class="card-header bg-danger text-white">
+              <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Zone dangereuse</h5>
+            </div>
+            <div class="card-body">
+              <p class="text-danger">
+                <strong>Attention:</strong> La suppression de votre compte est irréversible. 
+                Toutes vos données (transactions, budgets, alertes, rapports) seront définitivement supprimées.
+              </p>
+              <p>Cette action ne peut pas être annulée.</p>
+              
+              <button
+                type="button"
+                class="btn btn-danger"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteAccountModal"
+              >
+                <i class="fas fa-trash me-2"></i>Supprimer mon compte
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Confirmer la suppression du compte</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Cette action est irréversible!</strong>
+        </div>
+        <p>Êtes-vous absolument sûr de vouloir supprimer votre compte?</p>
+        <p>Toutes vos données seront définitivement perdues:</p>
+        <ul>
+          <li>Toutes vos transactions</li>
+          <li>Tous vos budgets</li>
+          <li>Toutes vos alertes</li>
+          <li>Tous vos rapports</li>
+          <li>Votre profil utilisateur</li>
+        </ul>
+        <p><strong>Cette action ne peut pas être annulée.</strong></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>Annuler
+        </button>
+        <form action="/users/account/delete" method="POST" class="d-inline">
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-trash me-2"></i>Oui, supprimer définitivement
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Validation du mot de passe en temps réel
+  document.addEventListener('DOMContentLoaded', function() {
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    function validatePasswords() {
+      if (newPassword.value && confirmPassword.value) {
+        if (newPassword.value !== confirmPassword.value) {
+          confirmPassword.setCustomValidity('Les mots de passe ne correspondent pas');
+        } else {
+          confirmPassword.setCustomValidity('');
+        }
+      }
+    }
+    
+    newPassword.addEventListener('input', validatePasswords);
+    confirmPassword.addEventListener('input', validatePasswords);
+  });
+</script>
+
+<%- include('../partials/footer') %>

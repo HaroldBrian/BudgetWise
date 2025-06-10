@@ -1,0 +1,216 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Mes Alertes</h1>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#createAlertModal"
+    >
+      <i class="fas fa-plus me-2"></i>Créer une alerte
+    </button>
+  </div>
+
+  <% if (alerts && alerts.length > 0) { %>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Transaction</th>
+          <th>Seuil</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% alerts.forEach(alert => { %>
+        <tr>
+          <td>
+            <div>
+              <strong><%= alert.transaction.description || 'Sans description' %></strong>
+              <br>
+              <small class="text-muted">
+                <%= parseFloat(alert.transaction.amount).toFixed(2) %> € - 
+                <%= new Date(alert.transaction.date).toLocaleDateString('fr-FR') %>
+              </small>
+            </div>
+          </td>
+          <td><%= parseFloat(alert.threshold).toFixed(2) %> €</td>
+          <td>
+            <% if (alert.active) { %>
+            <span class="badge bg-success">Active</span>
+            <% } else { %>
+            <span class="badge bg-secondary">Inactive</span>
+            <% } %>
+          </td>
+          <td>
+            <div class="btn-group">
+              <a href="/alerts/<%= alert.id %>" class="btn btn-sm btn-info">
+                <i class="fas fa-eye"></i> Détails
+              </a>
+              <button
+                type="button"
+                class="btn btn-sm btn-warning"
+                data-bs-toggle="modal"
+                data-bs-target="#editAlertModal<%= alert.id %>"
+              >
+                <i class="fas fa-edit"></i> Modifier
+              </button>
+              <form
+                action="/alerts/<%= alert.id %>/delete"
+                method="POST"
+                class="d-inline"
+              >
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-danger"
+                  onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')"
+                >
+                  <i class="fas fa-trash"></i> Supprimer
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Modal pour modifier l'alerte -->
+        <div
+          class="modal fade"
+          id="editAlertModal<%= alert.id %>"
+          tabindex="-1"
+        >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Modifier l'alerte</h5>
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="modal"
+                ></button>
+              </div>
+              <form action="/alerts/<%= alert.id %>/edit" method="POST">
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label for="threshold" class="form-label">Seuil (€)</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      name="threshold"
+                      value="<%= alert.threshold %>"
+                      step="0.01"
+                      min="0"
+                      required
+                    />
+                  </div>
+                  <div class="mb-3">
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input"
+                      name="active" <%= alert.active ? 'checked' : '' %>>
+                      <label class="form-check-label">Active</label>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal"
+                  >
+                    Annuler
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    Enregistrer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } else { %>
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    Vous n'avez pas encore d'alertes. Créez-en une pour commencer à
+    surveiller vos transactions.
+  </div>
+  <% } %>
+</div>
+
+<!-- Modal pour créer une alerte -->
+<div class="modal fade" id="createAlertModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Créer une alerte</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form action="/alerts" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="transaction_id" class="form-label">Transaction</label>
+            <select
+              class="form-select"
+              name="transaction_id"
+              required
+            >
+              <option value="">Sélectionnez une transaction</option>
+              <% transactions.forEach(transaction => { %>
+              <option value="<%= transaction.id %>">
+                <%= transaction.description || 'Sans description' %> - 
+                <%= parseFloat(transaction.amount).toFixed(2) %> € 
+                (<%= new Date(transaction.date).toLocaleDateString('fr-FR') %>)
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="threshold" class="form-label">Seuil (€)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="threshold"
+              step="0.01"
+              min="0"
+              required
+              placeholder="Ex: 100.00"
+            />
+          </div>
+          <div class="mb-3">
+            <div class="form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                name="active"
+                checked
+              />
+              <label class="form-check-label">Active</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">Créer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

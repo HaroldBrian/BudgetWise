@@ -1,0 +1,403 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Mes Transactions</h1>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#createTransactionModal"
+    >
+      <i class="fas fa-plus me-2"></i>Ajouter une transaction
+    </button>
+  </div>
+
+  <!-- Statistiques -->
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fas fa-arrow-down me-2"></i>Revenus</h5>
+          <h3 class="card-text"><%= stats.totalIncome %> €</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fas fa-arrow-up me-2"></i>Dépenses</h5>
+          <h3 class="card-text"><%= stats.totalExpenses %> €</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card bg-<%= stats.balance >= 0 ? 'primary' : 'warning' %> text-white">
+        <div class="card-body">
+          <h5 class="card-title"><i class="fas fa-balance-scale me-2"></i>Solde</h5>
+          <h3 class="card-text"><%= stats.balance %> €</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filtres</h5>
+    </div>
+    <div class="card-body">
+      <form method="GET" action="/transactions">
+        <div class="row">
+          <div class="col-md-2">
+            <label for="type" class="form-label">Type</label>
+            <select class="form-select" name="type">
+              <option value="">Tous</option>
+              <option value="income" <%= filters.type === 'income' ? 'selected' : '' %>>Revenus</option>
+              <option value="expense" <%= filters.type === 'expense' ? 'selected' : '' %>>Dépenses</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="category" class="form-label">Catégorie</label>
+            <select class="form-select" name="category">
+              <option value="">Toutes</option>
+              <% categories.forEach(category => { %>
+              <option value="<%= category %>" <%= filters.category === category ? 'selected' : '' %>>
+                <%= category %>
+              </option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label for="startDate" class="form-label">Date début</label>
+            <input type="date" class="form-control" name="startDate" value="<%= filters.startDate || '' %>">
+          </div>
+          <div class="col-md-2">
+            <label for="endDate" class="form-label">Date fin</label>
+            <input type="date" class="form-control" name="endDate" value="<%= filters.endDate || '' %>">
+          </div>
+          <div class="col-md-2">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-control" name="tags" value="<%= filters.tags || '' %>" placeholder="urgent, récurrent...">
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-outline-primary me-2">
+              <i class="fas fa-search"></i> Filtrer
+            </button>
+            <a href="/transactions" class="btn btn-outline-secondary">
+              <i class="fas fa-times"></i>
+            </a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Liste des transactions -->
+  <% if (transactions && transactions.length > 0) { %>
+  <div class="table-responsive">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Description</th>
+          <th>Catégorie</th>
+          <th>Tags</th>
+          <th>Montant</th>
+          <th>Type</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% transactions.forEach(transaction => { %>
+        <tr>
+          <td><%= new Date(transaction.date).toLocaleDateString('fr-FR') %></td>
+          <td><%= transaction.description || '-' %></td>
+          <td><%= transaction.category || '-' %></td>
+          <td>
+            <% if (transaction.tags && transaction.tags.length > 0) { %>
+              <% transaction.tags.forEach(tag => { %>
+                <span class="badge bg-secondary me-1"><%= tag %></span>
+              <% }); %>
+            <% } else { %>
+              -
+            <% } %>
+          </td>
+          <td class="<%= transaction.type === 'income' ? 'text-success' : 'text-danger' %>">
+            <%= transaction.type === 'income' ? '+' : '-' %><%= parseFloat(transaction.amount).toFixed(2) %> €
+          </td>
+          <td>
+            <span class="badge bg-<%= transaction.type === 'income' ? 'success' : 'danger' %>">
+              <%= transaction.type === 'income' ? 'Revenu' : 'Dépense' %>
+            </span>
+            <% if (transaction.is_recurring) { %>
+              <span class="badge bg-info ms-1">Récurrent</span>
+            <% } %>
+          </td>
+          <td>
+            <div class="btn-group">
+              <button
+                type="button"
+                class="btn btn-sm btn-warning"
+                data-bs-toggle="modal"
+                data-bs-target="#editTransactionModal<%= transaction.id %>"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+              <form action="/transactions/<%= transaction.id %>/delete" method="POST" class="d-inline">
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-danger"
+                  onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette transaction ?')"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Modal pour modifier la transaction -->
+        <div class="modal fade" id="editTransactionModal<%= transaction.id %>" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Modifier la transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <form action="/transactions/<%= transaction.id %>/edit" method="POST">
+                <div class="modal-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label for="type" class="form-label">Type</label>
+                      <select class="form-select" name="type" required>
+                        <option value="income" <%= transaction.type === 'income' ? 'selected' : '' %>>Revenu</option>
+                        <option value="expense" <%= transaction.type === 'expense' ? 'selected' : '' %>>Dépense</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="amount" class="form-label">Montant (€)</label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        name="amount"
+                        value="<%= transaction.amount %>"
+                        step="0.01"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="description"
+                      value="<%= transaction.description || '' %>"
+                      maxlength="255"
+                    />
+                  </div>
+                  <div class="row">
+                    <div class="col-md-6">
+                      <label for="category" class="form-label">Catégorie</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        name="category"
+                        value="<%= transaction.category || '' %>"
+                        maxlength="100"
+                        list="categories"
+                      />
+                      <datalist id="categories">
+                        <% categories.forEach(category => { %>
+                        <option value="<%= category %>">
+                        <% }); %>
+                      </datalist>
+                    </div>
+                    <div class="col-md-6">
+                      <label for="date" class="form-label">Date</label>
+                      <input
+                        type="date"
+                        class="form-control"
+                        name="date"
+                        value="<%= transaction.date %>"
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div class="mb-3">
+                    <label for="tags" class="form-label">Tags (séparés par des virgules)</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      name="tags"
+                      value="<%= transaction.tags ? transaction.tags.join(', ') : '' %>"
+                      placeholder="urgent, récurrent, personnel..."
+                    />
+                  </div>
+                  <div class="form-check">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      name="is_recurring"
+                      <%= transaction.is_recurring ? 'checked' : '' %>
+                    />
+                    <label class="form-check-label">Transaction récurrente</label>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Annuler
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    Enregistrer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <% if (pagination.totalPages > 1) { %>
+  <nav aria-label="Pagination des transactions">
+    <ul class="pagination justify-content-center">
+      <% if (pagination.hasPrev) { %>
+      <li class="page-item">
+        <a class="page-link" href="?page=<%= pagination.currentPage - 1 %>&<%= new URLSearchParams(filters).toString() %>">
+          Précédent
+        </a>
+      </li>
+      <% } %>
+      
+      <% for (let i = 1; i <= pagination.totalPages; i++) { %>
+      <li class="page-item <%= i === pagination.currentPage ? 'active' : '' %>">
+        <a class="page-link" href="?page=<%= i %>&<%= new URLSearchParams(filters).toString() %>">
+          <%= i %>
+        </a>
+      </li>
+      <% } %>
+      
+      <% if (pagination.hasNext) { %>
+      <li class="page-item">
+        <a class="page-link" href="?page=<%= pagination.currentPage + 1 %>&<%= new URLSearchParams(filters).toString() %>">
+          Suivant
+        </a>
+      </li>
+      <% } %>
+    </ul>
+  </nav>
+  <% } %>
+
+  <% } else { %>
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    Aucune transaction trouvée. Ajoutez votre première transaction pour commencer.
+  </div>
+  <% } %>
+</div>
+
+<!-- Modal pour créer une transaction -->
+<div class="modal fade" id="createTransactionModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Ajouter une transaction</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/transactions" method="POST">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <label for="type" class="form-label">Type</label>
+              <select class="form-select" name="type" required>
+                <option value="">Sélectionnez un type</option>
+                <option value="income">Revenu</option>
+                <option value="expense">Dépense</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label for="amount" class="form-label">Montant (€)</label>
+              <input
+                type="number"
+                class="form-control"
+                name="amount"
+                step="0.01"
+                min="0"
+                required
+                placeholder="Ex: 50.00"
+              />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="description" class="form-label">Description</label>
+            <input
+              type="text"
+              class="form-control"
+              name="description"
+              maxlength="255"
+              placeholder="Ex: Courses alimentaires"
+            />
+          </div>
+          <div class="row">
+            <div class="col-md-6">
+              <label for="category" class="form-label">Catégorie</label>
+              <input
+                type="text"
+                class="form-control"
+                name="category"
+                maxlength="100"
+                placeholder="Ex: Alimentation"
+                list="categories"
+              />
+              <datalist id="categories">
+                <% categories.forEach(category => { %>
+                <option value="<%= category %>">
+                <% }); %>
+              </datalist>
+            </div>
+            <div class="col-md-6">
+              <label for="date" class="form-label">Date</label>
+              <input
+                type="date"
+                class="form-control"
+                name="date"
+                value="<%= new Date().toISOString().split('T')[0] %>"
+                required
+              />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="tags" class="form-label">Tags (séparés par des virgules)</label>
+            <input
+              type="text"
+              class="form-control"
+              name="tags"
+              placeholder="urgent, récurrent, personnel..."
+            />
+          </div>
+          <div class="form-check">
+            <input type="checkbox" class="form-check-input" name="is_recurring" />
+            <label class="form-check-label">Transaction récurrente</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Ajouter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

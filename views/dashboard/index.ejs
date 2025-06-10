@@ -1,0 +1,172 @@
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <h1 class="mb-4">Tableau de bord</h1>
+
+  <!-- Statistiques -->
+  <div class="row mb-4">
+    <div class="col-md-3">
+      <div class="card bg-primary text-white">
+        <div class="card-body">
+          <h5 class="card-title">Solde Total</h5>
+          <h3 class="card-text">€<%= balance || 0 %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-success text-white">
+        <div class="card-body">
+          <h5 class="card-title">Revenus du mois</h5>
+          <h3 class="card-text">€<%= monthlyIncome || 0 %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-danger text-white">
+        <div class="card-body">
+          <h5 class="card-title">Dépenses du mois</h5>
+          <h3 class="card-text">€<%= monthlyExpenses || 0 %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card bg-info text-white">
+        <div class="card-body">
+          <h5 class="card-title">Budget restant</h5>
+          <h3 class="card-text">€<%= remainingBudget || 0 %></h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphiques -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Dépenses par catégorie</h5>
+          <canvas id="expensesChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Évolution des dépenses</h5>
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions récentes -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="mb-0">Transactions récentes</h5>
+      <a href="/transactions" class="btn btn-primary btn-sm">Voir tout</a>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Catégorie</th>
+              <th>Montant</th>
+              <th>Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (transactions && transactions.length > 0) { %> <%
+            transactions.forEach(transaction => { %>
+            <tr>
+              <td><%= new Date(transaction.date).toLocaleDateString() %></td>
+              <td><%= transaction.description %></td>
+              <td><%= transaction.category %></td>
+              <td
+                class="<%= transaction.type === 'income' ? 'text-success' : 'text-danger' %>"
+              >
+                €<%= transaction.amount %>
+              </td>
+              <td>
+                <span
+                  class="badge bg-<%= transaction.type === 'income' ? 'success' : 'danger' %>"
+                >
+                  <%= transaction.type === 'income' ? 'Revenu' : 'Dépense' %>
+                </span>
+              </td>
+            </tr>
+            <% }); %> <% } else { %>
+            <tr>
+              <td colspan="5" class="text-center">
+                Aucune transaction récente
+              </td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Scripts pour les graphiques -->
+<script>
+  // Données pour le graphique des dépenses par catégorie
+  const expensesCtx = document.getElementById("expensesChart").getContext("2d");
+  new Chart(expensesCtx, {
+    type: "pie",
+    data: {
+      labels: ["Alimentation", "Transport", "Logement", "Loisirs", "Autres"],
+      datasets: [
+        {
+          data: [30, 20, 25, 15, 10],
+          backgroundColor: [
+            "#FF6384",
+            "#36A2EB",
+            "#FFCE56",
+            "#4BC0C0",
+            "#9966FF",
+          ],
+        },
+      ],
+    },
+  });
+
+  // Données pour le graphique d'évolution
+  const trendCtx = document.getElementById("trendChart").getContext("2d");
+  new Chart(trendCtx, {
+    type: "line",
+    data: {
+      labels: ["Jan", "Fév", "Mar", "Avr", "Mai", "Juin"],
+      datasets: [
+        {
+          label: "Revenus",
+          data: [1200, 1300, 1250, 1400, 1350, 1500],
+          borderColor: "#28a745",
+          tension: 0.1,
+        },
+        {
+          label: "Dépenses",
+          data: [1000, 1100, 1050, 1200, 1150, 1300],
+          borderColor: "#dc3545",
+          tension: 0.1,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+        },
+      },
+    },
+  });
+</script>
+
+<%- include('../partials/footer') %>

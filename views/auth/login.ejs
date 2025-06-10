@@ -10,7 +10,7 @@
         ></button>
       </div>
       <div class="modal-body">
-        <form id="loginForm" action="#">
+        <form id="loginForm" method="post" action="/api/auth/login">
           <div class="mb-3">
             <label class="form-label">Adresse mail</label>
             <div class="input-group">
@@ -71,14 +71,3 @@
     </div>
   </div>
 </div>
-
-<script type="text/javascript">
-  alert("Connexion en cours...");
-  document.addEventListener("DOMContentLoaded", () => {
-    const loginForm = document.getElementById("loginForm");
-    loginForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      alert("Connexion en cours...");
-    });
-  });
-</script>

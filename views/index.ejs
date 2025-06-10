@@ -159,16 +159,22 @@ include('auth/login') %> <%- include('auth/register') %>
       bonheur dans votre gestion !
     </p>
     <div class="d-flex justify-content-center gap-3">
-      <button class="btn btn-outline-light btn-lg w-50 scale">
+      <button
+        class="btn btn-outline-light btn-lg w-50 scale"
+        data-bs-toggle="modal"
+        data-bs-target="#loginModal"
+      >
         Se connecter
       </button>
-      <button class="btn btn-light btn-lg w-50 scale">S'inscrire</button>
+      <button
+        class="btn btn-light btn-lg w-50 scale"
+        data-bs-toggle="modal"
+        data-bs-target="#registerModal"
+      >
+        S'inscrire
+      </button>
     </div>
   </div>
 </section>
 
 <%- include('partials/footer') %>
-
-<script>
-  alert("Connexion en cours...");
-</script>

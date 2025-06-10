@@ -3,18 +3,21 @@ const { body, validationResult } = require("express-validator");
 const { User } = require("../models");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const logger = require("../utils/logger");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const router = express.Router();
 
-// Get current user profile
+// Get current user profile (Page)
 router.get("/profile", isAuthenticated, async (req, res) => {
   try {
+    const user = await User.findByPk(req.session.user.id);
+    
     res.render("users/profile", {
       title: "Mon Profil",
-      user: req.session.user,
+      user: user.toJSON(),
     });
   } catch (error) {
+    logger.error("Error fetching user profile:", error);
     req.session.message = {
       type: "danger",
       message: "Erreur lors de la récupération du profil",
@@ -47,21 +50,39 @@ router.post(
           message: "Erreurs de validation",
           errors: errors.array(),
         };
-        return res.redirect("/profile");
+        return res.redirect("/users/profile");
       }
 
       const { name, email } = req.body;
       const updateData = {};
 
-      if (name) updateData.name = name;
-      if (email) updateData.email = email;
+      if (name && name.trim()) updateData.name = name.trim();
+      if (email && email.trim()) updateData.email = email.trim();
 
       if (Object.keys(updateData).length === 0) {
         req.session.message = {
           type: "warning",
           message: "Aucune donnée à mettre à jour",
         };
-        return res.redirect("/profile");
+        return res.redirect("/users/profile");
+      }
+
+      // Vérifier si l'email existe déjà
+      if (updateData.email) {
+        const existingUser = await User.findOne({
+          where: { 
+            email: updateData.email,
+            id: { [require('sequelize').Op.ne]: req.session.user.id }
+          }
+        });
+        
+        if (existingUser) {
+          req.session.message = {
+            type: "danger",
+            message: "Cette adresse email est déjà utilisée par un autre utilisateur",
+          };
+          return res.redirect("/users/profile");
+        }
       }
 
       const user = await User.findByPk(req.session.user.id);
@@ -79,13 +100,14 @@ router.post(
         type: "success",
         message: "Profil mis à jour avec succès",
       };
-      res.redirect("/profile");
+      res.redirect("/users/profile");
     } catch (error) {
+      logger.error("Error updating user profile:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la mise à jour du profil",
       };
-      res.redirect("/profile");
+      res.redirect("/users/profile");
     }
   }
 );
@@ -103,6 +125,13 @@ router.post(
       .withMessage(
         "Le nouveau mot de passe doit contenir au moins 6 caractères"
       ),
+    body("confirmPassword")
+      .custom((value, { req }) => {
+        if (value !== req.body.newPassword) {
+          throw new Error("Les mots de passe ne correspondent pas");
+        }
+        return true;
+      }),
   ],
   async (req, res) => {
     try {
@@ -113,28 +142,24 @@ router.post(
           message: "Erreurs de validation",
           errors: errors.array(),
         };
-        return res.redirect("/profile");
+        return res.redirect("/users/profile");
       }
 
       const { currentPassword, newPassword } = req.body;
       const user = await User.findByPk(req.session.user.id);
 
       // Validate current password
-      const isValidPassword = await bcrypt.compare(
-        currentPassword,
-        user.password
-      );
+      const isValidPassword = await user.validatePassword(currentPassword);
       if (!isValidPassword) {
         req.session.message = {
           type: "danger",
           message: "Mot de passe actuel incorrect",
         };
-        return res.redirect("/profile");
+        return res.redirect("/users/profile");
       }
 
       // Update password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
-      await user.update({ password: hashedPassword });
+      await user.update({ password: newPassword });
 
       logger.info(`Password changed for user: ${user.email}`);
 
@@ -142,13 +167,14 @@ router.post(
         type: "success",
         message: "Mot de passe mis à jour avec succès",
       };
-      res.redirect("/profile");
+      res.redirect("/users/profile");
     } catch (error) {
+      logger.error("Error changing password:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors du changement de mot de passe",
       };
-      res.redirect("/profile");
+      res.redirect("/users/profile");
     }
   }
 );
@@ -163,16 +189,17 @@ router.post("/account/delete", isAuthenticated, async (req, res) => {
 
     req.session.destroy((err) => {
       if (err) {
-        console.error("Erreur lors de la destruction de la session:", err);
+        logger.error("Error destroying session:", err);
       }
       res.redirect("/");
     });
   } catch (error) {
+    logger.error("Error deleting account:", error);
     req.session.message = {
       type: "danger",
       message: "Erreur lors de la suppression du compte",
     };
-    res.redirect("/profile");
+    res.redirect("/users/profile");
   }
 });
 

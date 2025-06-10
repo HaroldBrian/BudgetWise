@@ -6,18 +6,21 @@ const logger = require("../utils/logger");
 
 const router = express.Router();
 
-// Get all budgets for current user
+// Get all budgets for current user (Page)
 router.get("/", isAuthenticated, async (req, res) => {
   try {
     const budgets = await Budget.findAll({
-      where: { userId: req.session.user.id },
+      where: { user_id: req.session.user.id },
+      order: [["month", "DESC"]],
     });
+    
     res.render("budgets/index", {
       title: "Mes Budgets",
       budgets,
       user: req.session.user,
     });
   } catch (error) {
+    logger.error("Error fetching budgets:", error);
     req.session.message = {
       type: "danger",
       message: "Erreur lors de la récupération des budgets",
@@ -26,9 +29,9 @@ router.get("/", isAuthenticated, async (req, res) => {
   }
 });
 
-// Get budget by month
+// Get budget by month (API)
 router.get(
-  "/:month",
+  "/api/:month",
   isAuthenticated,
   [
     param("month")
@@ -50,7 +53,7 @@ router.get(
 
       const budget = await Budget.findOne({
         where: {
-          userId: req.session.user.id,
+          user_id: req.session.user.id,
           month,
         },
       });
@@ -90,17 +93,18 @@ router.post(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
-          success: false,
+        req.session.message = {
+          type: "danger",
           message: "Erreurs de validation",
           errors: errors.array(),
-        });
+        };
+        return res.redirect("/budgets");
       }
 
       const { month, amount } = req.body;
 
-      const [created] = await Budget.upsert({
-        userId: req.session.user.id,
+      const [budget, created] = await Budget.upsert({
+        user_id: req.session.user.id,
         month,
         amount,
       });
@@ -117,6 +121,7 @@ router.post(
       };
       res.redirect("/budgets");
     } catch (error) {
+      logger.error("Error creating/updating budget:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la création ou de la mise à jour du budget",
@@ -127,8 +132,8 @@ router.post(
 );
 
 // Delete budget
-router.delete(
-  "/:month",
+router.post(
+  "/:month/delete",
   isAuthenticated,
   [
     param("month")
@@ -139,27 +144,29 @@ router.delete(
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({
-          success: false,
+        req.session.message = {
+          type: "danger",
           message: "Erreurs de validation",
           errors: errors.array(),
-        });
+        };
+        return res.redirect("/budgets");
       }
 
       const { month } = req.params;
 
       const deleted = await Budget.destroy({
         where: {
-          userId: req.session.user.id,
+          user_id: req.session.user.id,
           month,
         },
       });
 
       if (!deleted) {
-        return res.status(404).json({
-          success: false,
+        req.session.message = {
+          type: "danger",
           message: "Budget non trouvé pour ce mois",
-        });
+        };
+        return res.redirect("/budgets");
       }
 
       logger.info(
@@ -172,6 +179,7 @@ router.delete(
       };
       res.redirect("/budgets");
     } catch (error) {
+      logger.error("Error deleting budget:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la suppression du budget",

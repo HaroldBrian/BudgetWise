@@ -1,4 +1,5 @@
-<%- include('../layouts/main', { title: 'Rapports Financiers' }) %>
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
 
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -9,7 +10,7 @@
       data-bs-toggle="modal"
       data-bs-target="#generateReportModal"
     >
-      Générer un rapport mensuel
+      <i class="fas fa-file-alt me-2"></i>Générer un rapport mensuel
     </button>
   </div>
 
@@ -18,88 +19,148 @@
     <div class="col-md-4">
       <div class="card bg-primary text-white">
         <div class="card-body">
-          <h5 class="card-title">Revenus Totaux</h5>
-          <h3 class="card-text"><%= totalIncome.toFixed(2) %> €</h3>
+          <h5 class="card-title"><i class="fas fa-arrow-up me-2"></i>Revenus Totaux</h5>
+          <h3 class="card-text"><%= totalIncome %> €</h3>
         </div>
       </div>
     </div>
     <div class="col-md-4">
       <div class="card bg-danger text-white">
         <div class="card-body">
-          <h5 class="card-title">Dépenses Totales</h5>
-          <h3 class="card-text"><%= totalExpenses.toFixed(2) %> €</h3>
+          <h5 class="card-title"><i class="fas fa-arrow-down me-2"></i>Dépenses Totales</h5>
+          <h3 class="card-text"><%= totalExpenses %> €</h3>
         </div>
       </div>
     </div>
     <div class="col-md-4">
       <div
-        class="card <%= netBalance >= 0 ? 'bg-success' : 'bg-warning' %> text-white"
+        class="card <%= parseFloat(netBalance) >= 0 ? 'bg-success' : 'bg-warning' %> text-white"
       >
         <div class="card-body">
-          <h5 class="card-title">Solde Net</h5>
-          <h3 class="card-text"><%= netBalance.toFixed(2) %> €</h3>
+          <h5 class="card-title"><i class="fas fa-balance-scale me-2"></i>Solde Net</h5>
+          <h3 class="card-text"><%= netBalance %> €</h3>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Dépenses par catégorie -->
+  <!-- Statistiques supplémentaires -->
   <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Total Transactions</h5>
+          <h3 class="text-info"><%= stats.totalTransactions %></h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Revenus Moyens/Mois</h5>
+          <h3 class="text-success"><%= stats.avgMonthlyIncome %> €</h3>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body text-center">
+          <h5 class="card-title">Dépenses Moyennes/Mois</h5>
+          <h3 class="text-danger"><%= stats.avgMonthlyExpenses %> €</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mb-4">
+    <!-- Dépenses par catégorie -->
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">
-          <h5 class="card-title mb-0">Dépenses par Catégorie</h5>
+          <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i>Dépenses par Catégorie</h5>
         </div>
         <div class="card-body">
-          <canvas id="expensesByCategoryChart"></canvas>
+          <% if (Object.keys(expensesByCategory).length > 0) { %>
+          <canvas id="expensesByCategoryChart" width="400" height="400"></canvas>
+          <% } else { %>
+          <p class="text-muted text-center">Aucune dépense catégorisée</p>
+          <% } %>
         </div>
       </div>
     </div>
 
-    <!-- Utilisation des budgets -->
+    <!-- Évolution mensuelle -->
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">
-          <h5 class="card-title mb-0">Utilisation des Budgets</h5>
+          <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Évolution Mensuelle</h5>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Budget</th>
-                  <th>Dépensé</th>
-                  <th>Total</th>
-                  <th>Utilisation</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% budgetUsage.forEach(budget => { %>
-                <tr>
-                  <td><%= budget.name %></td>
-                  <td><%= budget.spent.toFixed(2) %> €</td>
-                  <td><%= budget.amount.toFixed(2) %> €</td>
-                  <td>
-                    <div class="progress">
-                      <div
-                        class="progress-bar <%= budget.percentage > 100 ? 'bg-danger' : 'bg-success' %>"
-                        role="progressbar"
-                        style="width: <%= Math.min(budget.percentage, 100) %>%"
-                        aria-valuenow="<%= budget.percentage %>"
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                      >
-                        <%= budget.percentage.toFixed(1) %>%
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-                <% }); %>
-              </tbody>
-            </table>
-          </div>
+          <% if (monthlyEvolution.length > 0) { %>
+          <canvas id="monthlyEvolutionChart" width="400" height="400"></canvas>
+          <% } else { %>
+          <p class="text-muted text-center">Pas assez de données pour l'évolution</p>
+          <% } %>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Utilisation des budgets -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h5 class="card-title mb-0"><i class="fas fa-piggy-bank me-2"></i>Utilisation des Budgets</h5>
+    </div>
+    <div class="card-body">
+      <% if (budgetUsage.length > 0) { %>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Période</th>
+              <th>Budget</th>
+              <th>Dépensé</th>
+              <th>Restant</th>
+              <th>Utilisation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% budgetUsage.forEach(budget => { %>
+            <tr>
+              <td><%= budget.name %></td>
+              <td><%= budget.amount.toFixed(2) %> €</td>
+              <td><%= budget.spent.toFixed(2) %> €</td>
+              <td class="<%= (budget.amount - budget.spent) >= 0 ? 'text-success' : 'text-danger' %>">
+                <%= (budget.amount - budget.spent).toFixed(2) %> €
+              </td>
+              <td>
+                <div class="progress">
+                  <div
+                    class="progress-bar <%= budget.percentage > 100 ? 'bg-danger' : budget.percentage > 80 ? 'bg-warning' : 'bg-success' %>"
+                    role="progressbar"
+                    style="width: <%= Math.min(budget.percentage, 100) %>%"
+                    aria-valuenow="<%= budget.percentage %>"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    <%= budget.percentage.toFixed(1) %>%
+                  </div>
+                </div>
+                <% if (budget.percentage > 100) { %>
+                <small class="text-danger">Dépassement de <%= (budget.percentage - 100).toFixed(1) %>%</small>
+                <% } %>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+      <% } else { %>
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>
+        Aucun budget défini. <a href="/budgets">Créez votre premier budget</a> pour suivre vos dépenses.
+      </div>
+      <% } %>
     </div>
   </div>
 </div>
@@ -127,6 +188,9 @@
               name="month"
               required
             />
+            <div class="form-text">
+              Sélectionnez le mois pour lequel vous souhaitez générer un rapport détaillé.
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -137,7 +201,9 @@
           >
             Annuler
           </button>
-          <button type="submit" class="btn btn-primary">Générer</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fas fa-file-alt me-2"></i>Générer
+          </button>
         </div>
       </form>
     </div>
@@ -148,37 +214,101 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Configuration du graphique des dépenses par catégorie
-    const ctx = document.getElementById('expensesByCategoryChart').getContext('2d');
-    const expensesData = <%- JSON.stringify(expensesByCategory) %>;
-
-    new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: Object.keys(expensesData),
-        datasets: [{
-          data: Object.values(expensesData),
-          backgroundColor: [
-            '#FF6384',
-            '#36A2EB',
-            '#FFCE56',
-            '#4BC0C0',
-            '#9966FF',
-            '#FF9F40'
-          ]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'right'
-          },
-          title: {
-            display: true,
-            text: 'Répartition des Dépenses'
+    const expensesCtx = document.getElementById('expensesByCategoryChart');
+    if (expensesCtx) {
+      const expensesData = <%- JSON.stringify(expensesByCategory) %>;
+      
+      new Chart(expensesCtx, {
+        type: 'pie',
+        data: {
+          labels: Object.keys(expensesData),
+          datasets: [{
+            data: Object.values(expensesData),
+            backgroundColor: [
+              '#FF6384',
+              '#36A2EB',
+              '#FFCE56',
+              '#4BC0C0',
+              '#9966FF',
+              '#FF9F40',
+              '#FF6384',
+              '#C9CBCF'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            title: {
+              display: true,
+              text: 'Répartition des Dépenses par Catégorie'
+            }
           }
         }
-      }
-    });
+      });
+    }
+
+    // Configuration du graphique d'évolution mensuelle
+    const evolutionCtx = document.getElementById('monthlyEvolutionChart');
+    if (evolutionCtx) {
+      const evolutionData = <%- JSON.stringify(monthlyEvolution) %>;
+      
+      new Chart(evolutionCtx, {
+        type: 'line',
+        data: {
+          labels: evolutionData.map(d => d.monthName),
+          datasets: [
+            {
+              label: 'Revenus',
+              data: evolutionData.map(d => d.income),
+              borderColor: '#28a745',
+              backgroundColor: 'rgba(40, 167, 69, 0.1)',
+              tension: 0.1
+            },
+            {
+              label: 'Dépenses',
+              data: evolutionData.map(d => d.expenses),
+              borderColor: '#dc3545',
+              backgroundColor: 'rgba(220, 53, 69, 0.1)',
+              tension: 0.1
+            },
+            {
+              label: 'Solde',
+              data: evolutionData.map(d => d.balance),
+              borderColor: '#007bff',
+              backgroundColor: 'rgba(0, 123, 255, 0.1)',
+              tension: 0.1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value + ' €';
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              position: 'bottom'
+            },
+            title: {
+              display: true,
+              text: 'Évolution des Finances (6 derniers mois)'
+            }
+          }
+        }
+      });
+    }
   });
 </script>
+
+<%- include('../partials/footer') %>

@@ -6,7 +6,7 @@ const logger = require("../utils/logger");
 
 const router = express.Router();
 
-// Get all alerts for user's transactions
+// Get all alerts for user's transactions (Page)
 router.get("/", isAuthenticated, async (req, res) => {
   try {
     const alerts = await Alert.findAll({
@@ -14,7 +14,7 @@ router.get("/", isAuthenticated, async (req, res) => {
         {
           model: Transaction,
           as: "transaction",
-          where: { userId: req.session.user.id },
+          where: { user_id: req.session.user.id },
           attributes: [
             "id",
             "type",
@@ -28,12 +28,21 @@ router.get("/", isAuthenticated, async (req, res) => {
       order: [["id", "DESC"]],
     });
 
+    // Get user transactions for the create form
+    const transactions = await Transaction.findAll({
+      where: { user_id: req.session.user.id },
+      order: [["date", "DESC"]],
+      limit: 50,
+    });
+
     res.render("alerts/index", {
       title: "Mes Alertes",
       alerts,
+      transactions,
       user: req.session.user,
     });
   } catch (error) {
+    logger.error("Error fetching alerts:", error);
     req.session.message = {
       type: "danger",
       message: "Erreur lors de la récupération des alertes",
@@ -42,7 +51,7 @@ router.get("/", isAuthenticated, async (req, res) => {
   }
 });
 
-// Get alert by ID
+// Get alert by ID (Page)
 router.get(
   "/:id",
   isAuthenticated,
@@ -67,7 +76,7 @@ router.get(
           {
             model: Transaction,
             as: "transaction",
-            where: { userId: req.session.user.id },
+            where: { user_id: req.session.user.id },
             attributes: [
               "id",
               "type",
@@ -94,6 +103,7 @@ router.get(
         user: req.session.user,
       });
     } catch (error) {
+      logger.error("Error fetching alert:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la récupération de l'alerte",
@@ -137,7 +147,7 @@ router.post(
       const transaction = await Transaction.findOne({
         where: {
           id: transaction_id,
-          userId: req.session.user.id,
+          user_id: req.session.user.id,
         },
       });
 
@@ -151,8 +161,8 @@ router.post(
 
       const alert = await Alert.create({
         transaction_id,
-        threshold,
-        active,
+        threshold: parseFloat(threshold),
+        active: active === 'on' || active === true,
       });
 
       logger.info(
@@ -165,6 +175,7 @@ router.post(
       };
       res.redirect("/alerts");
     } catch (error) {
+      logger.error("Error creating alert:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la création de l'alerte",
@@ -176,7 +187,7 @@ router.post(
 
 // Update alert
 router.post(
-  "/:id",
+  "/:id/edit",
   isAuthenticated,
   [
     param("id").isInt().withMessage("L'ID doit être un entier"),
@@ -202,6 +213,7 @@ router.post(
       }
 
       const { id } = req.params;
+      const { threshold, active } = req.body;
 
       const alert = await Alert.findOne({
         where: { id },
@@ -209,7 +221,7 @@ router.post(
           {
             model: Transaction,
             as: "transaction",
-            where: { userId: req.session.user.id },
+            where: { user_id: req.session.user.id },
           },
         ],
       });
@@ -222,8 +234,11 @@ router.post(
         return res.redirect("/alerts");
       }
 
-      await alert.update(req.body);
-      await alert.reload();
+      const updateData = {};
+      if (threshold !== undefined) updateData.threshold = parseFloat(threshold);
+      if (active !== undefined) updateData.active = active === 'on' || active === true;
+
+      await alert.update(updateData);
 
       logger.info(`Alert updated for user ${req.session.user.email}: ID ${id}`);
 
@@ -233,6 +248,7 @@ router.post(
       };
       res.redirect("/alerts");
     } catch (error) {
+      logger.error("Error updating alert:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la mise à jour de l'alerte",
@@ -267,7 +283,7 @@ router.post(
           {
             model: Transaction,
             as: "transaction",
-            where: { userId: req.session.user.id },
+            where: { user_id: req.session.user.id },
           },
         ],
       });
@@ -290,6 +306,7 @@ router.post(
       };
       res.redirect("/alerts");
     } catch (error) {
+      logger.error("Error deleting alert:", error);
       req.session.message = {
         type: "danger",
         message: "Erreur lors de la suppression de l'alerte",

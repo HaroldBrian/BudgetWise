@@ -1,0 +1,153 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Mes Budgets</h1>
+    <button
+      type="button"
+      class="btn btn-primary"
+      data-bs-toggle="modal"
+      data-bs-target="#createBudgetModal"
+    >
+      <i class="fas fa-plus me-2"></i>Créer un budget
+    </button>
+  </div>
+
+  <% if (budgets && budgets.length > 0) { %>
+  <div class="row">
+    <% budgets.forEach(budget => { %>
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">
+            <i class="fas fa-calendar me-2"></i>
+            <%= new Date(budget.month + '-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }) %>
+          </h5>
+          <p class="card-text">
+            <strong>Budget:</strong> <%= parseFloat(budget.amount).toFixed(2) %> €
+          </p>
+          <div class="d-flex justify-content-between">
+            <button
+              type="button"
+              class="btn btn-sm btn-warning"
+              data-bs-toggle="modal"
+              data-bs-target="#editBudgetModal<%= budget.id %>"
+            >
+              <i class="fas fa-edit"></i> Modifier
+            </button>
+            <form action="/budgets/<%= budget.month %>/delete" method="POST" class="d-inline">
+              <button
+                type="submit"
+                class="btn btn-sm btn-danger"
+                onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce budget ?')"
+              >
+                <i class="fas fa-trash"></i> Supprimer
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal pour modifier le budget -->
+    <div class="modal fade" id="editBudgetModal<%= budget.id %>" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Modifier le budget</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <form action="/budgets" method="POST">
+            <div class="modal-body">
+              <div class="mb-3">
+                <label for="month" class="form-label">Mois</label>
+                <input
+                  type="month"
+                  class="form-control"
+                  name="month"
+                  value="<%= budget.month %>"
+                  readonly
+                />
+              </div>
+              <div class="mb-3">
+                <label for="amount" class="form-label">Montant (€)</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  name="amount"
+                  value="<%= budget.amount %>"
+                  step="0.01"
+                  min="0"
+                  required
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                Annuler
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Enregistrer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <% }); %>
+  </div>
+  <% } else { %>
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    Vous n'avez pas encore de budgets. Créez-en un pour commencer à gérer vos finances.
+  </div>
+  <% } %>
+</div>
+
+<!-- Modal pour créer un budget -->
+<div class="modal fade" id="createBudgetModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Créer un budget</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/budgets" method="POST">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="month" class="form-label">Mois</label>
+            <input
+              type="month"
+              class="form-control"
+              name="month"
+              required
+            />
+          </div>
+          <div class="mb-3">
+            <label for="amount" class="form-label">Montant (€)</label>
+            <input
+              type="number"
+              class="form-control"
+              name="amount"
+              step="0.01"
+              min="0"
+              required
+              placeholder="Ex: 1500.00"
+            />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Créer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

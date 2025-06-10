@@ -1,20 +1,21 @@
+/* eslint-disable node/no-missing-require */
 const express = require("express");
-const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const { body, validationResult } = require("express-validator");
 const { User } = require("../models");
-const logger = require("../utils/logger");
+const { isNotAuthenticated } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
 // Register
 router.post(
   "/register",
+  isNotAuthenticated,
   [
-    body("name")
-      .notEmpty()
-      .withMessage("Le nom est requis")
-      .isLength({ min: 2, max: 100 })
-      .withMessage("Le nom doit contenir entre 2 et 100 caractères"),
+    body("username")
+      .trim()
+      .isLength({ min: 3 })
+      .withMessage("Le nom d'utilisateur doit contenir au moins 3 caractères"),
     body("email")
       .isEmail()
       .withMessage("Adresse email invalide")
@@ -22,71 +23,63 @@ router.post(
     body("password")
       .isLength({ min: 6 })
       .withMessage("Le mot de passe doit contenir au moins 6 caractères"),
+    body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.password) {
+        throw new Error("Les mots de passe ne correspondent pas");
+      }
+      return true;
+    }),
   ],
-  async (req, res, next) => {
+  async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.json({
-          success: false,
+        req.session.message = {
+          type: "danger",
           message: "Erreurs de validation",
           errors: errors.array(),
-        });
-        res.redirect("/");
-        return res.status(400).json({
-          success: false,
-          message: "Erreurs de validation",
-          errors: errors.array(),
-        });
+        };
+        return res.redirect("/");
       }
 
-      const { name, email, password } = req.body;
+      const { username, email, password } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findOne({ where: { email } });
       if (existingUser) {
-        res.json({
-          success: false,
-          message: "Un utilisateur avec cette adresse email existe déjà",
-        });
-        res.redirect("/");
-        return res.status(409).json({
-          success: false,
-          message: "Un utilisateur avec cette adresse email existe déjà",
-        });
+        req.session.message = {
+          type: "danger",
+          message: "Un utilisateur avec cet email existe déjà",
+        };
+        return res.redirect("/");
       }
 
       // Create user
-      const user = await User.create({ name, email, password });
-
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
-      );
-
-      logger.info(`New user registered: ${email}`);
-
-      res.json({
-        success: true,
-        message: "Utilisateur créé avec succès",
-        data: {
-          user,
-          token,
-        },
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await User.create({
+        username,
+        email,
+        password: hashedPassword,
       });
-      res.status(201).json({
-        success: true,
-        message: "Utilisateur créé avec succès",
-        data: {
-          user,
-          token,
-        },
-      });
-      res.redirect("/dashboard");
+
+      // Connecter automatiquement l'utilisateur
+      req.session.user = {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+      };
+
+      req.session.message = {
+        type: "success",
+        message: "Inscription réussie ! Bienvenue sur BudgetWise",
+      };
+      return res.redirect("/dashboard");
     } catch (error) {
-      next(error);
+      req.session.message = {
+        type: "danger",
+        message: "Une erreur est survenue lors de l'inscription",
+      };
+      return res.redirect("/");
     }
   }
 );
@@ -94,6 +87,7 @@ router.post(
 // Login
 router.post(
   "/login",
+  isNotAuthenticated,
   [
     body("email")
       .isEmail()
@@ -101,78 +95,59 @@ router.post(
       .normalizeEmail(),
     body("password").notEmpty().withMessage("Le mot de passe est requis"),
   ],
-  async (req, res, next) => {
+  async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.json({
-          success: false,
+        req.session.message = {
+          type: "danger",
           message: "Erreurs de validation",
           errors: errors.array(),
-        });
-        res.redirect("/");
-        return res.status(400).json({
-          success: false,
-          message: "Erreurs de validation",
-          errors: errors.array(),
-        });
+        };
+        return res.redirect("/");
       }
 
       const { email, password } = req.body;
 
       // Find user
       const user = await User.findOne({ where: { email } });
-      if (!user) {
-        res.json({
-          success: false,
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        req.session.message = {
+          type: "danger",
           message: "Email ou mot de passe incorrect",
-        });
-        res.redirect("/");
-        return res.status(401).json({
-          success: false,
-          message: "Email ou mot de passe incorrect",
-        });
+        };
+        return res.redirect("/");
       }
 
-      // Validate password
-      const isValidPassword = await user.validatePassword(password);
-      if (!isValidPassword) {
-        res.json({
-          success: false,
-          message: "Email ou mot de passe incorrect",
-        });
-        res.redirect("/");
-        return res.status(401).json({
-          success: false,
-          message: "Email ou mot de passe incorrect",
-        });
-      }
+      // Stocker les informations de l'utilisateur en session
+      req.session.user = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      };
 
-      // Generate JWT token
-      const token = jwt.sign(
-        { userId: user.id, email: user.email },
-        process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
-      );
-
-      logger.info(`User logged in: ${email}`);
-
-      res.json({
-        success: true,
-        message: "Connexion réussie",
-        data: {
-          user,
-          token,
-        },
-      });
-
-      res.redirect("/dashboard");
+      req.session.message = {
+        type: "success",
+        message: "Connexion réussie !",
+      };
+      return res.redirect("/");
     } catch (error) {
-      next(error);
-
-      res.redirect("/");
+      req.session.message = {
+        type: "danger",
+        message: "Une erreur est survenue lors de la connexion",
+      };
+      return res.redirect("/");
     }
   }
 );
+
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error("Erreur lors de la déconnexion:", err);
+    }
+    return res.redirect("/");
+  });
+});
 
 module.exports = router;

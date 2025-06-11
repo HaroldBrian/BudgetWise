@@ -45,8 +45,23 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+<<<<<<< HEAD
       # - name: Run tests
       #   run: npm run test:coverage
+=======
+      # - name: Run ESLint
+      #   run: npm run lint
+
+      # - name: Run tests
+      #   run: npm run test:coverage
+
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     file: ./coverage/lcov.info
+      #     flags: unittests
+      #     name: codecov-umbrella
+>>>>>>> f412002 (update)
 
   deploy:
     name: Deploy to my Render Account

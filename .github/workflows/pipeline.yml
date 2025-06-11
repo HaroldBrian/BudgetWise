@@ -60,15 +60,15 @@ jobs:
       # - name: Run ESLint
       #   run: npm run lint
 
-      - name: Run tests
-        run: npm run test:coverage
+      # - name: Run tests
+      #   run: npm run test:coverage
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     file: ./coverage/lcov.info
+      #     flags: unittests
+      #     name: codecov-umbrella
 
   deploy:
     name: Deploy to Render

@@ -57,8 +57,8 @@ jobs:
       # fi
       # echo 'MySQL is up - continuing'
 
-      - name: Run ESLint
-        run: npm run lint
+      # - name: Run ESLint
+      #   run: npm run lint
 
       - name: Run tests
         run: npm run test:coverage

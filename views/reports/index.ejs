@@ -1,5 +1,4 @@
-<%- include('../partials/header') %>
-<%- include('../partials/navbar') %>
+<%- include('../partials/header') %> <%- include('../partials/navbar') %>
 
 <div class="container mt-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,9 +16,11 @@
   <!-- Résumé financier -->
   <div class="row mb-4">
     <div class="col-md-4">
-      <div class="card bg-primary text-white">
+      <div class="card bg-success text-white">
         <div class="card-body">
-          <h5 class="card-title"><i class="fas fa-arrow-up me-2"></i>Revenus Totaux</h5>
+          <h5 class="card-title">
+            <i class="fas fa-arrow-down me-2"></i>Revenus Totaux
+          </h5>
           <h3 class="card-text"><%= totalIncome %> €</h3>
         </div>
       </div>
@@ -27,17 +28,21 @@
     <div class="col-md-4">
       <div class="card bg-danger text-white">
         <div class="card-body">
-          <h5 class="card-title"><i class="fas fa-arrow-down me-2"></i>Dépenses Totales</h5>
+          <h5 class="card-title">
+            <i class="fas fa-arrow-up me-2"></i>Dépenses Totales
+          </h5>
           <h3 class="card-text"><%= totalExpenses %> €</h3>
         </div>
       </div>
     </div>
     <div class="col-md-4">
       <div
-        class="card <%= parseFloat(netBalance) >= 0 ? 'bg-success' : 'bg-warning' %> text-white"
+        class="card <%= parseFloat(netBalance) >= 0 ? 'bg-primary' : 'bg-warning' %> text-white"
       >
         <div class="card-body">
-          <h5 class="card-title"><i class="fas fa-balance-scale me-2"></i>Solde Net</h5>
+          <h5 class="card-title">
+            <i class="fas fa-balance-scale me-2"></i>Solde Net
+          </h5>
           <h3 class="card-text"><%= netBalance %> €</h3>
         </div>
       </div>
@@ -77,11 +82,17 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">
-          <h5 class="card-title mb-0"><i class="fas fa-chart-pie me-2"></i>Dépenses par Catégorie</h5>
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-pie me-2"></i>Dépenses par Catégorie
+          </h5>
         </div>
         <div class="card-body">
           <% if (Object.keys(expensesByCategory).length > 0) { %>
-          <canvas id="expensesByCategoryChart" width="400" height="400"></canvas>
+          <canvas
+            id="expensesByCategoryChart"
+            width="400"
+            height="400"
+          ></canvas>
           <% } else { %>
           <p class="text-muted text-center">Aucune dépense catégorisée</p>
           <% } %>
@@ -93,13 +104,17 @@
     <div class="col-md-6">
       <div class="card">
         <div class="card-header">
-          <h5 class="card-title mb-0"><i class="fas fa-chart-line me-2"></i>Évolution Mensuelle</h5>
+          <h5 class="card-title mb-0">
+            <i class="fas fa-chart-line me-2"></i>Évolution Mensuelle
+          </h5>
         </div>
         <div class="card-body">
           <% if (monthlyEvolution.length > 0) { %>
           <canvas id="monthlyEvolutionChart" width="400" height="400"></canvas>
           <% } else { %>
-          <p class="text-muted text-center">Pas assez de données pour l'évolution</p>
+          <p class="text-muted text-center">
+            Pas assez de données pour l'évolution
+          </p>
           <% } %>
         </div>
       </div>
@@ -109,7 +124,9 @@
   <!-- Utilisation des budgets -->
   <div class="card mb-4">
     <div class="card-header">
-      <h5 class="card-title mb-0"><i class="fas fa-piggy-bank me-2"></i>Utilisation des Budgets</h5>
+      <h5 class="card-title mb-0">
+        <i class="fas fa-piggy-bank me-2"></i>Utilisation des Budgets
+      </h5>
     </div>
     <div class="card-body">
       <% if (budgetUsage.length > 0) { %>
@@ -130,7 +147,9 @@
               <td><%= budget.name %></td>
               <td><%= budget.amount.toFixed(2) %> €</td>
               <td><%= budget.spent.toFixed(2) %> €</td>
-              <td class="<%= (budget.amount - budget.spent) >= 0 ? 'text-success' : 'text-danger' %>">
+              <td
+                class="<%= (budget.amount - budget.spent) >= 0 ? 'text-success' : 'text-danger' %>"
+              >
                 <%= (budget.amount - budget.spent).toFixed(2) %> €
               </td>
               <td>
@@ -147,7 +166,10 @@
                   </div>
                 </div>
                 <% if (budget.percentage > 100) { %>
-                <small class="text-danger">Dépassement de <%= (budget.percentage - 100).toFixed(1) %>%</small>
+                <small class="text-danger"
+                  >Dépassement de <%= (budget.percentage - 100).toFixed(1)
+                  %>%</small
+                >
                 <% } %>
               </td>
             </tr>
@@ -158,7 +180,9 @@
       <% } else { %>
       <div class="alert alert-info">
         <i class="fas fa-info-circle me-2"></i>
-        Aucun budget défini. <a href="/budgets">Créez votre premier budget</a> pour suivre vos dépenses.
+        Aucun budget défini.
+        <a href="/budgets">Créez votre premier budget</a> pour suivre vos
+        dépenses.
       </div>
       <% } %>
     </div>
@@ -189,7 +213,8 @@
               required
             />
             <div class="form-text">
-              Sélectionnez le mois pour lequel vous souhaitez générer un rapport détaillé.
+              Sélectionnez le mois pour lequel vous souhaitez générer un rapport
+              détaillé.
             </div>
           </div>
         </div>
@@ -217,7 +242,7 @@
     const expensesCtx = document.getElementById('expensesByCategoryChart');
     if (expensesCtx) {
       const expensesData = <%- JSON.stringify(expensesByCategory) %>;
-      
+
       new Chart(expensesCtx, {
         type: 'pie',
         data: {
@@ -255,7 +280,7 @@
     const evolutionCtx = document.getElementById('monthlyEvolutionChart');
     if (evolutionCtx) {
       const evolutionData = <%- JSON.stringify(monthlyEvolution) %>;
-      
+
       new Chart(evolutionCtx, {
         type: 'line',
         data: {

@@ -6,7 +6,7 @@ const logger = require("../utils/logger");
 
 const router = express.Router();
 
-// Get all alerts for user's transactions (Page)
+// Get all alerts for user
 router.get("/", isAuthenticated, async (req, res) => {
   try {
     const alerts = await Alert.findAll({
@@ -51,7 +51,7 @@ router.get("/", isAuthenticated, async (req, res) => {
   }
 });
 
-// Get alert by ID (Page)
+// Get alert
 router.get(
   "/:id",
   isAuthenticated,
@@ -141,9 +141,8 @@ router.post(
         return res.redirect("/alerts");
       }
 
-      const { transaction_id, threshold, active = true } = req.body;
+      const { transaction_id, threshold } = req.body;
 
-      // Verify that the transaction belongs to the current user
       const transaction = await Transaction.findOne({
         where: {
           id: transaction_id,
@@ -158,12 +157,6 @@ router.post(
         };
         return res.redirect("/alerts");
       }
-
-      const alert = await Alert.create({
-        transaction_id,
-        threshold: parseFloat(threshold),
-        active: active === 'on' || active === true,
-      });
 
       logger.info(
         `Alert created for user ${req.session.user.email}: transaction ${transaction_id} - threshold ${threshold}`
@@ -236,7 +229,8 @@ router.post(
 
       const updateData = {};
       if (threshold !== undefined) updateData.threshold = parseFloat(threshold);
-      if (active !== undefined) updateData.active = active === 'on' || active === true;
+      if (active !== undefined)
+        updateData.active = active === "on" || active === true;
 
       await alert.update(updateData);
 

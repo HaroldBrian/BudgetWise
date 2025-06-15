@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 const express = require("express");
-const { body, param, query, validationResult } = require("express-validator");
+const { body, query, validationResult } = require("express-validator");
 const { Report, Transaction, Budget } = require("../models");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const logger = require("../utils/logger");
@@ -13,15 +14,15 @@ router.get("/", isAuthenticated, async (req, res) => {
     const userId = req.session.user.id;
 
     // Récupérer les transactions de l'utilisateur
-    const transactions = await Transaction.findAll({ 
+    const transactions = await Transaction.findAll({
       where: { user_id: userId },
-      order: [["date", "DESC"]]
+      order: [["date", "DESC"]],
     });
 
     // Récupérer les budgets de l'utilisateur
-    const budgets = await Budget.findAll({ 
+    const budgets = await Budget.findAll({
       where: { user_id: userId },
-      order: [["month", "DESC"]]
+      order: [["month", "DESC"]],
     });
 
     // Calculer les statistiques
@@ -46,31 +47,38 @@ router.get("/", isAuthenticated, async (req, res) => {
     // Calculer le pourcentage d'utilisation des budgets
     const budgetUsage = budgets.map((budget) => {
       const budgetMonth = budget.month;
-      const monthTransactions = transactions.filter(t => {
+      const monthTransactions = transactions.filter((t) => {
         const transactionMonth = new Date(t.date).toISOString().slice(0, 7);
-        return transactionMonth === budgetMonth && t.type === 'expense';
+        return transactionMonth === budgetMonth && t.type === "expense";
       });
-      
-      const spent = monthTransactions.reduce((sum, t) => sum + parseFloat(t.amount), 0);
-      
+
+      const spent = monthTransactions.reduce(
+        (sum, t) => sum + parseFloat(t.amount),
+        0
+      );
+
       return {
         id: budget.id,
         month: budget.month,
-        name: new Date(budget.month + '-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' }),
+        name: new Date(budget.month + "-01").toLocaleDateString("fr-FR", {
+          year: "numeric",
+          month: "long",
+        }),
         amount: parseFloat(budget.amount),
         spent,
-        percentage: budget.amount > 0 ? (spent / parseFloat(budget.amount)) * 100 : 0,
+        percentage:
+          budget.amount > 0 ? (spent / parseFloat(budget.amount)) * 100 : 0,
       };
     });
 
     // Évolution mensuelle
     const monthlyData = {};
-    transactions.forEach(t => {
+    transactions.forEach((t) => {
       const month = new Date(t.date).toISOString().slice(0, 7);
       if (!monthlyData[month]) {
         monthlyData[month] = { income: 0, expenses: 0 };
       }
-      if (t.type === 'income') {
+      if (t.type === "income") {
         monthlyData[month].income += parseFloat(t.amount);
       } else {
         monthlyData[month].expenses += parseFloat(t.amount);
@@ -80,12 +88,15 @@ router.get("/", isAuthenticated, async (req, res) => {
     const monthlyEvolution = Object.keys(monthlyData)
       .sort()
       .slice(-6) // Derniers 6 mois
-      .map(month => ({
+      .map((month) => ({
         month,
-        monthName: new Date(month + '-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' }),
+        monthName: new Date(month + "-01").toLocaleDateString("fr-FR", {
+          year: "numeric",
+          month: "short",
+        }),
         income: monthlyData[month].income,
         expenses: monthlyData[month].expenses,
-        balance: monthlyData[month].income - monthlyData[month].expenses
+        balance: monthlyData[month].income - monthlyData[month].expenses,
       }));
 
     res.render("reports/index", {
@@ -99,11 +110,21 @@ router.get("/", isAuthenticated, async (req, res) => {
       monthlyEvolution,
       stats: {
         totalTransactions: transactions.length,
-        avgMonthlyIncome: monthlyEvolution.length > 0 ? 
-          (monthlyEvolution.reduce((sum, m) => sum + m.income, 0) / monthlyEvolution.length).toFixed(2) : 0,
-        avgMonthlyExpenses: monthlyEvolution.length > 0 ? 
-          (monthlyEvolution.reduce((sum, m) => sum + m.expenses, 0) / monthlyEvolution.length).toFixed(2) : 0
-      }
+        avgMonthlyIncome:
+          monthlyEvolution.length > 0
+            ? (
+                monthlyEvolution.reduce((sum, m) => sum + m.income, 0) /
+                monthlyEvolution.length
+              ).toFixed(2)
+            : 0,
+        avgMonthlyExpenses:
+          monthlyEvolution.length > 0
+            ? (
+                monthlyEvolution.reduce((sum, m) => sum + m.expenses, 0) /
+                monthlyEvolution.length
+              ).toFixed(2)
+            : 0,
+      },
     });
   } catch (error) {
     logger.error("Erreur lors de la génération des rapports:", error);
@@ -157,23 +178,27 @@ router.post(
 
       // Générer le rapport
       const startDate = new Date(`${month}-01`);
-      const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+      const endDate = new Date(
+        startDate.getFullYear(),
+        startDate.getMonth() + 1,
+        0
+      );
 
       const transactions = await Transaction.findAll({
         where: {
           user_id: userId,
           date: {
-            [Op.between]: [startDate, endDate]
-          }
+            [Op.between]: [startDate, endDate],
+          },
         },
-        order: [["date", "ASC"]]
+        order: [["date", "ASC"]],
       });
 
       const budget = await Budget.findOne({
         where: {
           user_id: userId,
-          month
-        }
+          month,
+        },
       });
 
       // Calculer les statistiques du mois
@@ -192,22 +217,31 @@ router.post(
           }, {}),
         transactionCount: transactions.length,
         budgetAmount: budget ? parseFloat(budget.amount) : 0,
-        budgetUsed: budget ? 
-          (transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + parseFloat(t.amount), 0) / parseFloat(budget.amount) * 100) : 0
+        budgetUsed: budget
+          ? (transactions
+              .filter((t) => t.type === "expense")
+              .reduce((sum, t) => sum + parseFloat(t.amount), 0) /
+              parseFloat(budget.amount)) *
+            100
+          : 0,
       };
 
       // Créer le rapport dans la base de données
       const report = await Report.create({
         user_id: userId,
         month,
-        pdf_url: `/reports/${userId}/${month}.json`, // URL fictive pour les données JSON
+        pdf_url: `/reports/${userId}/${month}.json`,
       });
 
-      logger.info(`Report generated for user ${req.session.user.email}: ${month}`);
+      logger.info(
+        `Report generated for user ${req.session.user.email}: ${month}`
+      );
 
       req.session.message = {
         type: "success",
-        message: `Rapport généré avec succès pour ${new Date(month + '-01').toLocaleDateString('fr-FR', { year: 'numeric', month: 'long' })}`,
+        message: `Rapport généré avec succès pour ${new Date(
+          month + "-01"
+        ).toLocaleDateString("fr-FR", { year: "numeric", month: "long" })}`,
       };
 
       res.redirect("/reports");
@@ -222,7 +256,6 @@ router.post(
   }
 );
 
-// Get all reports for current user (API)
 router.get(
   "/api",
   isAuthenticated,

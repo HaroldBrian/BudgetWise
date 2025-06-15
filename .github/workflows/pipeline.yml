@@ -46,6 +46,7 @@ jobs:
         run: npm run lint
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       # - name: Run tests
       #   run: npm run test:coverage
 =======
@@ -62,6 +63,10 @@ jobs:
       #     flags: unittests
       #     name: codecov-umbrella
 >>>>>>> f412002 (update)
+=======
+      # - name: Run tests
+      #   run: npm run test:coverage
+>>>>>>> 96b1fd7 (update)
 
   deploy:
     name: Deploy to my Render Account

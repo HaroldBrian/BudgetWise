@@ -1,7 +1,11 @@
 module.exports = {
   up: async (queryInterface) => {
     const userId = 1;
+<<<<<<< HEAD
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+=======
+    const currentMonth = new Date().toISOString().slice(0, 7);
+>>>>>>> 96b1fd7 (update)
 
     await queryInterface.bulkInsert(
       "budgets",

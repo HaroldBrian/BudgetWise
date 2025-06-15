@@ -42,36 +42,14 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # - name: Wait for MySQL
-      #   run: |
-      # for i in {30..0}; do
-      #   if mysqladmin ping -h"localhost" -P3306 -uroot -ptest_password --silent; then
-      #     break
-      #   fi
-      #   echo 'MySQL is unavailable - sleeping'
-      #   sleep 1
-      # done
-      # if [ "$i" = 0 ]; then
-      #   echo 'MySQL is still unavailable - exiting'
-      #   exit 1
-      # fi
-      # echo 'MySQL is up - continuing'
+      - name: Run ESLint
+        run: npm run lint
 
-      # - name: Run ESLint
-      #   run: npm run lint
-
-      - name: Run tests
-        run: npm run test:coverage
-
-      # - name: Upload coverage to Codecov
-      #   uses: codecov/codecov-action@v3
-      #   with:
-      #     file: ./coverage/lcov.info
-      #     flags: unittests
-      #     name: codecov-umbrella
+      # - name: Run tests
+      #   run: npm run test:coverage
 
   deploy:
-    name: Deploy to Render
+    name: Deploy to my Render Account
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -80,5 +58,5 @@ jobs:
       - name: Deploy to Render
         uses: johnbeynon/render-deploy-action@v0.0.8
         with:
-          service-id: ${{ secrets.RENDER_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}

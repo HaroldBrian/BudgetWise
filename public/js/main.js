@@ -1,7 +1,6 @@
-// Main JavaScript file for BudgetWise
+/* eslint-disable no-undef */
 
 document.addEventListener("DOMContentLoaded", function () {
-  // Password toggle functionality
   const passwordToggles = document.querySelectorAll(".password-toggle");
   passwordToggles.forEach((toggle) => {
     toggle.addEventListener("click", function () {
@@ -20,7 +19,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Auto-dismiss alerts after 15 seconds
   const alerts = document.querySelectorAll(".alert");
   alerts.forEach((alert) => {
     setTimeout(() => {
@@ -29,7 +27,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 15000);
   });
 
-  // Form validation
   const forms = document.querySelectorAll("form");
   forms.forEach((form) => {
     form.addEventListener("submit", function (e) {
@@ -41,7 +38,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Modal handling for login/register
   const loginModal = document.getElementById("loginModal");
   const registerModal = document.getElementById("registerModal");
 
@@ -65,7 +61,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Handle form submissions with AJAX for login/register
   const loginForm = document.getElementById("loginForm");
   const registerForm = document.getElementById("registerForm");
 
@@ -127,7 +122,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Function to show alerts
   function showAlert(type, message) {
     const alertContainer = document.createElement("div");
     alertContainer.className = `alert alert-${type} alert-dismissible fade show`;
@@ -140,7 +134,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (container) {
       container.insertBefore(alertContainer, container.firstChild);
 
-      // Auto-dismiss after 15 seconds
       setTimeout(() => {
         const bsAlert = new bootstrap.Alert(alertContainer);
         bsAlert.close();
@@ -148,7 +141,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  // Smooth scrolling for anchor links
   const anchorLinks = document.querySelectorAll('a[href^="#"]');
   anchorLinks.forEach((link) => {
     link.addEventListener("click", function (e) {
@@ -163,7 +155,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Number formatting for currency inputs
   const currencyInputs = document.querySelectorAll(
     'input[type="number"][step="0.01"]'
   );
@@ -175,7 +166,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Tags input functionality
   const tagsInputs = document.querySelectorAll('input[name="tags"]');
   tagsInputs.forEach((input) => {
     input.addEventListener("keydown", function (e) {

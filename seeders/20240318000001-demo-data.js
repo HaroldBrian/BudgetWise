@@ -1,11 +1,8 @@
-const { Op } = require("sequelize");
-
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    const userId = 1; // ID de l'utilisateur de démonstration
-    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+  up: async (queryInterface) => {
+    const userId = 1;
+    const currentMonth = new Date().toISOString().slice(0, 7);
 
-    // Créer les budgets
     await queryInterface.bulkInsert(
       "budgets",
       [
@@ -27,67 +24,19 @@ module.exports = {
       {}
     );
 
-    // Créer les transactions
-    const transactions = await queryInterface.bulkInsert(
-      "transactions",
-      [
-        {
-          id: 1,
-          user_id: userId,
-          type: "income",
-          amount: 2500.0,
-          description: "Salaire",
-          category: "Salaire",
-          date: new Date(),
-          is_recurring: true,
-        },
-        {
-          id: 2,
-          user_id: userId,
-          type: "expense",
-          amount: 800.0,
-          description: "Loyer",
-          category: "Logement",
-          date: new Date(),
-          is_recurring: true,
-        },
-        {
-          id: 3,
-          user_id: userId,
-          type: "expense",
-          amount: 150.0,
-          description: "Courses",
-          category: "Alimentation",
-          date: new Date(),
-          is_recurring: false,
-        },
-        {
-          id: 4,
-          user_id: userId,
-          type: "expense",
-          amount: 50.0,
-          description: "Transport",
-          category: "Transport",
-          date: new Date(),
-          is_recurring: false,
-        },
-      ],
-      {}
-    );
-
     // Créer les alertes
     await queryInterface.bulkInsert(
       "alerts",
       [
         {
           id: 1,
-          transaction_id: 2, // Alerte sur le loyer
+          transaction_id: 2,
           threshold: 1000.0,
           active: true,
         },
         {
           id: 2,
-          transaction_id: 3, // Alerte sur les courses
+          transaction_id: 3,
           threshold: 200.0,
           active: true,
         },
@@ -118,8 +67,7 @@ module.exports = {
     );
   },
 
-  down: async (queryInterface, Sequelize) => {
-    // Supprimer les données dans l'ordre inverse de leur création
+  down: async (queryInterface) => {
     await queryInterface.bulkDelete("reports", null, {});
     await queryInterface.bulkDelete("alerts", null, {});
     await queryInterface.bulkDelete("transactions", null, {});

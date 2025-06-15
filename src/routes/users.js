@@ -3,15 +3,13 @@ const { body, validationResult } = require("express-validator");
 const { User } = require("../models");
 const { isAuthenticated } = require("../middleware/authMiddleware");
 const logger = require("../utils/logger");
-const bcrypt = require("bcryptjs");
 
 const router = express.Router();
 
-// Get current user profile (Page)
 router.get("/profile", isAuthenticated, async (req, res) => {
   try {
     const user = await User.findByPk(req.session.user.id);
-    
+
     res.render("users/profile", {
       title: "Mon Profil",
       user: user.toJSON(),
@@ -70,16 +68,17 @@ router.post(
       // Vérifier si l'email existe déjà
       if (updateData.email) {
         const existingUser = await User.findOne({
-          where: { 
+          where: {
             email: updateData.email,
-            id: { [require('sequelize').Op.ne]: req.session.user.id }
-          }
+            id: { [require("sequelize").Op.ne]: req.session.user.id },
+          },
         });
-        
+
         if (existingUser) {
           req.session.message = {
             type: "danger",
-            message: "Cette adresse email est déjà utilisée par un autre utilisateur",
+            message:
+              "Cette adresse email est déjà utilisée par un autre utilisateur",
           };
           return res.redirect("/users/profile");
         }
@@ -125,13 +124,12 @@ router.post(
       .withMessage(
         "Le nouveau mot de passe doit contenir au moins 6 caractères"
       ),
-    body("confirmPassword")
-      .custom((value, { req }) => {
-        if (value !== req.body.newPassword) {
-          throw new Error("Les mots de passe ne correspondent pas");
-        }
-        return true;
-      }),
+    body("confirmPassword").custom((value, { req }) => {
+      if (value !== req.body.newPassword) {
+        throw new Error("Les mots de passe ne correspondent pas");
+      }
+      return true;
+    }),
   ],
   async (req, res) => {
     try {

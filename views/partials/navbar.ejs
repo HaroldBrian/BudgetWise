@@ -1,7 +1,9 @@
 <!-- Navigation -->
-<nav class="navbar navbar-expand-lg navbar-light fixed-top">
+<nav
+  class="navbar navbar-expand-lg navbar-<% if (user) { %>dark bg-dark<% } else { %>light<% } %> fixed-top"
+>
   <div class="container">
-    <a class="navbar-brand" href="/">
+    <a class="navbar-brand logo-text" href="/">
       <i class="fas fa-wallet me-2"></i>BudgetWise
     </a>
     <button
@@ -17,24 +19,16 @@
       <ul class="navbar-nav me-auto">
         <% if (user) { %>
         <li class="nav-item">
-          <a class="nav-link" href="/dashboard">
-            <i class="fas fa-chart-line me-1"></i>Tableau de bord
-          </a>
+          <a class="nav-link" href="/dashboard"> Mon dashboard </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/transactions">
-            <i class="fas fa-exchange-alt me-1"></i>Transactions
-          </a>
+          <a class="nav-link" href="/transactions"> Mes transactions </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/budgets">
-            <i class="fas fa-piggy-bank me-1"></i>Budgets
-          </a>
+          <a class="nav-link" href="/budgets"> Mes budgets </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/reports">
-            <i class="fas fa-file-alt me-1"></i>Rapports
-          </a>
+          <a class="nav-link" href="/reports"> Mes rapports </a>
         </li>
         <% } %>
       </ul>
@@ -48,12 +42,15 @@
             role="button"
             data-bs-toggle="dropdown"
           >
-            <i class="fas fa-user-circle me-1"></i><%= user.name || user.username %>
+            <i class="fas fa-user-circle me-1"></i><%= user.name ||
+            user.username %>
           </a>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="/users/profile">
-              <i class="fas fa-user-cog me-2"></i>Profil
-            </a></li>
+            <li>
+              <a class="dropdown-item" href="/users/profile">
+                <i class="fas fa-user-cog me-2"></i>Profil
+              </a>
+            </li>
             <li><hr class="dropdown-divider" /></li>
             <li>
               <form action="/api/auth/logout" method="post" class="d-inline">
@@ -65,60 +62,30 @@
           </ul>
         </li>
         <% } else { %>
-        <li class="nav-item">
-          <button
-            class="btn btn-outline-primary me-2"
-            data-bs-toggle="modal"
-            data-bs-target="#loginModal"
-          >
-            <i class="fas fa-sign-in-alt me-1"></i>Connexion
-          </button>
-        </li>
-        <li class="nav-item">
-          <button
-            class="btn btn-primary"
-            data-bs-toggle="modal"
-            data-bs-target="#registerModal"
-          >
-            <i class="fas fa-user-plus me-1"></i>Inscription
-          </button>
-        </li>
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <button
+              class="nav-link"
+              data-bs-toggle="modal"
+              data-bs-target="#loginModal"
+            >
+              Se connecter
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              class="nav-link"
+              data-bs-toggle="modal"
+              data-bs-target="#registerModal"
+            >
+              S'inscrire
+            </button>
+          </li>
+        </ul>
         <% } %>
       </ul>
     </div>
   </div>
 </nav>
 
-<!-- Affichage des messages flash -->
-<% if (typeof message !== 'undefined' && message) { %>
-<div class="container mt-5 pt-3">
-  <div
-    class="alert alert-<%= message.type %> alert-dismissible fade show"
-    role="alert"
-  >
-    <% if (message.type === 'success') { %>
-      <i class="fas fa-check-circle me-2"></i>
-    <% } else if (message.type === 'danger') { %>
-      <i class="fas fa-exclamation-triangle me-2"></i>
-    <% } else if (message.type === 'warning') { %>
-      <i class="fas fa-exclamation-circle me-2"></i>
-    <% } else { %>
-      <i class="fas fa-info-circle me-2"></i>
-    <% } %>
-    <%= message.message %>
-    <% if (message.errors && message.errors.length > 0) { %>
-      <ul class="mb-0 mt-2">
-        <% message.errors.forEach(error => { %>
-          <li><%= error.msg || error.message %></li>
-        <% }); %>
-      </ul>
-    <% } %>
-    <button
-      type="button"
-      class="btn-close"
-      data-bs-dismiss="alert"
-      aria-label="Close"
-    ></button>
-  </div>
-</div>
-<% } %>
+<div class="container container-alert mt-5 pt-3"></div>

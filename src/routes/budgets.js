@@ -6,14 +6,13 @@ const logger = require("../utils/logger");
 
 const router = express.Router();
 
-// Get all budgets for current user (Page)
 router.get("/", isAuthenticated, async (req, res) => {
   try {
     const budgets = await Budget.findAll({
       where: { user_id: req.session.user.id },
       order: [["month", "DESC"]],
     });
-    
+
     res.render("budgets/index", {
       title: "Mes Budgets",
       budgets,
@@ -29,7 +28,6 @@ router.get("/", isAuthenticated, async (req, res) => {
   }
 });
 
-// Get budget by month (API)
 router.get(
   "/api/:month",
   isAuthenticated,
@@ -77,7 +75,6 @@ router.get(
   }
 );
 
-// Create or update budget
 router.post(
   "/",
   isAuthenticated,
@@ -103,7 +100,7 @@ router.post(
 
       const { month, amount } = req.body;
 
-      const [budget, created] = await Budget.upsert({
+      const [created] = await Budget.upsert({
         user_id: req.session.user.id,
         month,
         amount,
@@ -131,7 +128,6 @@ router.post(
   }
 );
 
-// Delete budget
 router.post(
   "/:month/delete",
   isAuthenticated,

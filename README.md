@@ -2,25 +2,31 @@
 
 BudgetWise est une application pour la gestion de budget personnel, développée avec Express.js, Sequelize ORM et MySQL.
 
+## Liens du projet
+
+- **Lien render**: https://budgetwise-b6uv.onrender.com
+- **Lien github**: https://github.com/HaroldBrian/BudgetWise
+
 ## Fonctionnalités
 
-- **Authentification par Session** - Inscription et connexion sécurisées avec gestion de session
-- **Gestion des utilisateurs** - Profils utilisateur complets
+- **Authentification par Session** - Inscription et connexion par session
+- **Gestion des utilisateurs** - Profils utilisateur
 - **Budgets mensuels** - Création et suivi des budgets par mois
 - **Transactions** - Gestion des revenus et dépenses avec catégorisation
 - **Alertes** - Système d'alertes basé sur des seuils personnalisables
 - **Rapports** - Génération de rapports mensuels en PDF
-- **API REST** - Interface RESTful complète et documentée
 
 ## Technologies
 
+- **Frontend**: HTML, CSS, BootStrap
 - **Backend**: Express.js (Node.js)
 - **ORM**: Sequelize
 - **Base de données**: MySQL
-- **Tests**: Jest + Supertest
+- **Tests**: Jest & Supertest
 - **Linting**: ESLint
 - **CI/CD**: GitHub Actions
 - **Déploiement**: Render.com
+- **Service MySQL**: Aiven.com
 
 ## Prérequis
 
@@ -185,19 +191,6 @@ npm run test:coverage
 # Linting
 npm run lint
 npm run lint:fix
-```
-
-### Variables d'environnement pour la production
-
-```env
-NODE_ENV=production
-PORT=3000
-DB_HOST=your_mysql_host
-DB_PORT=3306
-DB_NAME=budgetwise_db
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-SESSION_SECRET=your_production_session_secret
 ```
 
 ---

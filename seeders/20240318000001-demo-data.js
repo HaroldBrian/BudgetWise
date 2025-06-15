@@ -3,6 +3,7 @@ module.exports = {
     const userId = 1;
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 =======
     const currentMonth = new Date().toISOString().slice(0, 7);
@@ -10,6 +11,9 @@ module.exports = {
 =======
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 >>>>>>> 08099d2 (updateé)
+=======
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+>>>>>>> 111d706909519c5f0364f81f9d1fb57e70f42472
 
     await queryInterface.bulkInsert(
       "budgets",

@@ -19,24 +19,16 @@
       <ul class="navbar-nav me-auto">
         <% if (user) { %>
         <li class="nav-item">
-          <a class="nav-link" href="/dashboard">
-            <i class="fas fa-chart-line me-1"></i>Tableau de bord
-          </a>
+          <a class="nav-link" href="/dashboard"> Mon dashboard </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/transactions">
-            <i class="fas fa-exchange-alt me-1"></i>Transactions
-          </a>
+          <a class="nav-link" href="/transactions"> Mes transactions </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/budgets">
-            <i class="fas fa-piggy-bank me-1"></i>Budgets
-          </a>
+          <a class="nav-link" href="/budgets"> Mes budgets </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="/reports">
-            <i class="fas fa-file-alt me-1"></i>Rapports
-          </a>
+          <a class="nav-link" href="/reports"> Mes rapports </a>
         </li>
         <% } %>
       </ul>
@@ -72,20 +64,22 @@
         <% } else { %>
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a
+            <button
               class="nav-link"
               data-bs-toggle="modal"
               data-bs-target="#loginModal"
-              >Se connecter</a
             >
+              Se connecter
+            </button>
           </li>
           <li class="nav-item">
-            <a
+            <button
               class="nav-link"
               data-bs-toggle="modal"
               data-bs-target="#registerModal"
-              >S'inscrire</a
             >
+              S'inscrire
+            </button>
           </li>
         </ul>
         <% } %>
@@ -95,36 +89,3 @@
 </nav>
 
 <div class="container container-alert mt-5 pt-3"></div>
-
-<!-- Affichage des messages flash -->
-<% if (typeof message !== 'undefined' && message) { %>
-<div class="container mt-5 pt-3">
-  <div
-    class="alert alert-<%= message.type %> alert-dismissible fade show"
-    role="alert"
-  >
-    <% if (message.type === 'success') { %>
-    <i class="fas fa-check-circle me-2"></i>
-    <% } else if (message.type === 'danger') { %>
-    <i class="fas fa-exclamation-triangle me-2"></i>
-    <% } else if (message.type === 'warning') { %>
-    <i class="fas fa-exclamation-circle me-2"></i>
-    <% } else { %>
-    <i class="fas fa-info-circle me-2"></i>
-    <% } %> <%= message.message %> <% if (message.errors &&
-    message.errors.length > 0) { %>
-    <ul class="mb-0 mt-2">
-      <% message.errors.forEach(error => { %>
-      <li><%= error.msg || error.message %></li>
-      <% }); %>
-    </ul>
-    <% } %>
-    <button
-      type="button"
-      class="btn-close"
-      data-bs-dismiss="alert"
-      aria-label="Close"
-    ></button>
-  </div>
-</div>
-<% } %>
